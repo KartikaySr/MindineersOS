@@ -1,0 +1,32 @@
+# MindineersOS — Docker Compose
+# by Kartikay Srivastava at Mindineers Labs
+#
+# Usage:
+#   docker-compose up -d        # Start in background
+#   docker-compose logs -f      # Follow logs
+#   docker-compose down         # Stop
+#   docker-compose up --build   # Rebuild and start
+
+services:
+  mindineeros:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mindineeros
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    env_file:
+      - .env
+    volumes:
+      - mindineers-data:/app/.eliza
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  mindineers-data:
+    driver: local

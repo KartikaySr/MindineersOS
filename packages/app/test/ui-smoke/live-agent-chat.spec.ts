@@ -1,0 +1,173 @@
+// Opt-in app smoke against the real UI stack and a real LLM-backed agent.
+//
+// Default UI smoke runs force the lightweight stub API for speed. Enable this
+// test with ELIZA_UI_SMOKE_LIVE_STACK=1 plus a provider key accepted by
+// selectLiveProvider() to verify the app shell can send a real chat message to
+// a live runtime.
+
+import { expect, type Page, test } from "@playwright/test";
+import { selectLiveProvider } from "../../../app-core/test/helpers/live-provider";
+import {
+  installDefaultAppRoutes,
+  openAppPath,
+  seedAppStorage,
+} from "./helpers";
+
+const LIVE_AGENT_CHAT_ENABLED = process.env.ELIZA_UI_SMOKE_LIVE_STACK === "1";
+const LIVE_PROVIDER = selectLiveProvider();
+const LIVE_AGENT_RESPONSE_MARKER = "APP_LIVE_AGENT_OK";
+const OPTIONAL_LIVE_ENDPOINTS = [
+  /\/api\/coding-agents(?:\?|$)/,
+  /\/api\/lifeops\/activity-signals(?:\?|$)/,
+  /\/api\/tts\/cloud(?:\?|$)/,
+  /\/api\/vincent\/status(?:\?|$)/,
+];
+
+type DeterministicAssistantFixture = {
+  fixture: string;
+  transport: string;
+  input: {
+    text: string;
+  };
+  action: {
+    type: string;
+    target: string | null;
+  };
+};
+
+function isOptionalLiveEndpoint(url: string): boolean {
+  return OPTIONAL_LIVE_ENDPOINTS.some((pattern) => pattern.test(url));
+}
+
+function parseAssistantFixtureText(
+  text: string,
+): DeterministicAssistantFixture {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  expect(
+    start,
+    "Assistant message should contain a JSON object",
+  ).toBeGreaterThanOrEqual(0);
+  expect(
+    end,
+    "Assistant message should contain a complete JSON object",
+  ).toBeGreaterThan(start);
+  return JSON.parse(
+    text.slice(start, end + 1),
+  ) as DeterministicAssistantFixture;
+}
+
+function installFailureCollectors(page: Page): string[] {
+  const failures: string[] = [];
+  page.on("pageerror", (error) => {
+    failures.push(`pageerror: ${error.message}`);
+  });
+  page.on("console", (message) => {
+    if (message.type() !== "error") return;
+    const text = message.text();
+    if (/^\[RenderTelemetry\]/.test(text)) return;
+    if (
+      /^Failed to load resource: the server responded with a status of (401|404) /i.test(
+        text,
+      )
+    ) {
+      return;
+    }
+    failures.push(`console.error: ${text}`);
+  });
+  page.on("response", (response) => {
+    if (response.status() < 400) return;
+    if (/\/favicon(?:\.ico)?(?:\?|$)/i.test(response.url())) return;
+    if (response.status() < 500 && isOptionalLiveEndpoint(response.url())) {
+      return;
+    }
+    failures.push(`${response.status()} ${response.url()}`);
+  });
+  return failures;
+}
+
+test("app chat sends a message to the deterministic keyless agent and renders parseable JSON", async ({
+  page,
+}) => {
+  await seedAppStorage(page);
+  await installDefaultAppRoutes(page);
+
+  await openAppPath(page, "/chat");
+  await expect(page.getByTestId("chat-composer-textarea")).toBeVisible({
+    timeout: 60_000,
+  });
+
+  const prompt = "Open the wallet inventory view from this keyless smoke test.";
+  await page.getByTestId("chat-composer-textarea").fill(prompt);
+  await expect(page.getByTestId("chat-composer-action")).toBeEnabled();
+  await page.getByTestId("chat-composer-action").click();
+
+  await expect(
+    page
+      .locator('[data-testid="chat-message"][data-role="user"]')
+      .filter({ hasText: prompt })
+      .last(),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const assistantMessage = page
+    .locator('[data-testid="chat-message"][data-role="assistant"]')
+    .last();
+  await expect(assistantMessage).toBeVisible({ timeout: 60_000 });
+  const assistantText = (await assistantMessage.textContent())?.trim() ?? "";
+  const parsed = parseAssistantFixtureText(assistantText);
+  expect(parsed).toMatchObject({
+    fixture: "ui-smoke-assistant-v1",
+    transport: "sse",
+    input: {
+      text: prompt,
+    },
+    action: {
+      type: "navigate",
+      target: "/wallet",
+    },
+  });
+});
+
+test.describe("live agent chat", () => {
+  test.skip(
+    !LIVE_AGENT_CHAT_ENABLED,
+    "set ELIZA_UI_SMOKE_LIVE_STACK=1 to run against the real app runtime",
+  );
+  test.skip(
+    !LIVE_PROVIDER,
+    "set a supported live provider key for the app runtime",
+  );
+
+  test("app chat sends a message to the live agent and renders the response", async ({
+    page,
+  }) => {
+    const failures = installFailureCollectors(page);
+    await seedAppStorage(page);
+
+    await openAppPath(page, "/chat");
+    await expect(page.getByTestId("chat-composer-textarea")).toBeVisible({
+      timeout: 60_000,
+    });
+
+    const prompt = `For a Playwright end-to-end smoke test, reply with exactly ${LIVE_AGENT_RESPONSE_MARKER} and no other words.`;
+    await page.getByTestId("chat-composer-textarea").fill(prompt);
+    await expect(page.getByTestId("chat-composer-action")).toBeEnabled();
+    await page.getByTestId("chat-composer-action").click();
+
+    await expect(
+      page
+        .locator('[data-testid="chat-message"][data-role="user"]')
+        .filter({ hasText: prompt })
+        .last(),
+    ).toBeVisible({ timeout: 30_000 });
+
+    await expect(
+      page
+        .locator('[data-testid="chat-message"][data-role="assistant"]')
+        .filter({ hasText: new RegExp(LIVE_AGENT_RESPONSE_MARKER, "i") })
+        .last(),
+    ).toBeVisible({ timeout: 120_000 });
+
+    expect(failures, "live agent chat browser/runtime failures").toEqual([]);
+  });
+});

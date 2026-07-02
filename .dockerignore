@@ -1,0 +1,67 @@
+# MindineersOS Docker Ignore
+# Optimized for minimal build context
+
+# Version control
+.git
+.gitattributes
+.gitmodules
+.gitleaks.toml
+.gitleaksignore
+
+# Dependencies (will be installed in Docker)
+node_modules
+
+# IDE and editor
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Environment (secrets)
+.env
+.env.local
+.env.*.local
+
+# Data directories
+.eliza
+.turbo
+
+# Test files
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/test/
+**/e2e/
+
+# Documentation (not needed in runtime)
+*.md
+!README.md
+docs/
+
+# Build artifacts (will be rebuilt)
+**/dist/
+
+# CI/CD
+.github
+.codefactor.yml
+
+# Local evidence and results
+local-evidence/
+results/
+
+# Prototypes
+prototypes/
+
+# Config files not needed in Docker
+.biomeignore
+.madgerc
+.nvmrc
+knip.json
+lerna.json
+biome.json
+turbo.json
+vitest.config.ts
+tsconfig.dist-paths.json

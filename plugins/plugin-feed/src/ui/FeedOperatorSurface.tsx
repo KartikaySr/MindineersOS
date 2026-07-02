@@ -1,0 +1,708 @@
+import {
+  type AppOperatorSurfaceProps,
+  client,
+  type FeedActivityItem,
+  type FeedAgentGoal,
+  type FeedAgentStatus,
+  type FeedChatMessage,
+  type FeedPredictionMarket,
+  type FeedWallet,
+  formatDetailTimestamp,
+  SurfaceBadge,
+  SurfaceCard,
+  SurfaceEmptyState,
+  SurfaceGrid,
+  SurfaceSection,
+  selectLatestRunForApp,
+  toneForHealthState,
+  toneForStatusText,
+  toneForViewerAttachment,
+  useApp,
+} from "@elizaos/app-core/ui-compat";
+import { Button, Input, TerminalPluginView } from "@elizaos/ui";
+import { useAgentElement } from "@elizaos/ui/agent-surface";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  extractAgentSummary,
+  extractChatMessages,
+  extractTeamConversations,
+  extractTeamDashboard,
+  extractTradingBalance,
+  type FeedAgentSummaryEnvelope,
+  type FeedTeamConversation,
+  type FeedTeamDashboard,
+  summarizeFeedActivity,
+} from "./feed-data";
+
+function extractWallet(value: unknown): FeedWallet | null {
+  if (!value || typeof value !== "object") return null;
+  const data = value as Record<string, unknown>;
+
+  const balance = asFiniteNumber(data.balance);
+  const transactions = Array.isArray(data.transactions)
+    ? (data.transactions as FeedWallet["transactions"])
+    : [];
+
+  if (balance == null && !Array.isArray(data.transactions)) {
+    return null;
+  }
+
+  return {
+    balance: balance ?? 0,
+    transactions,
+  };
+}
+
+function asFiniteNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function formatDecimal(value: unknown, digits: number): string | null {
+  const parsed = asFiniteNumber(value);
+  return parsed == null ? null : parsed.toFixed(digits);
+}
+
+function formatCurrency(value: unknown): string {
+  const formatted = formatDecimal(value, 2);
+  return formatted == null ? "n/a" : `$${formatted}`;
+}
+
+function formatPnL(value: unknown): string {
+  const parsed = asFiniteNumber(value);
+  if (parsed == null) return "n/a";
+  const sign = parsed >= 0 ? "+" : "";
+  return `${sign}$${parsed.toFixed(2)}`;
+}
+
+function listPreview(items: FeedPredictionMarket[]): string {
+  if (items.length === 0) return "Market data is not available yet.";
+  return items
+    .slice(0, 3)
+    .map((market) => {
+      const yesPrice = formatDecimal(market.yesPrice, 2);
+      const noPrice = formatDecimal(market.noPrice, 2);
+      if (!yesPrice || !noPrice) {
+        return market.title;
+      }
+      return `${market.title} (${yesPrice}/${noPrice})`;
+    })
+    .join(" · ");
+}
+
+function FeedSuggestedPromptButton({
+  prompt,
+  index,
+  onSelect,
+  disabled,
+}: {
+  prompt: string;
+  index: number;
+  onSelect: (prompt: string) => void;
+  disabled: boolean;
+}) {
+  const { ref, agentProps } = useAgentElement<HTMLButtonElement>({
+    id: `steering-suggested-prompt-${index}`,
+    role: "button",
+    label: prompt,
+    group: "Steering",
+    description: `Send the suggested prompt "${prompt}" to Feed`,
+    onActivate: () => onSelect(prompt),
+  });
+  return (
+    <Button
+      ref={ref}
+      type="button"
+      variant="outline"
+      size="sm"
+      className="min-h-10 rounded-xl px-3 shadow-sm"
+      onClick={() => onSelect(prompt)}
+      disabled={disabled}
+      {...agentProps}
+    >
+      {prompt}
+    </Button>
+  );
+}
+
+export function FeedOperatorSurface({
+  appName,
+  variant = "detail",
+  focus = "all",
+}: AppOperatorSurfaceProps) {
+  const { appRuns } = useApp();
+  const { run, matchingRuns } = useMemo(
+    () => selectLatestRunForApp(appName, appRuns),
+    [appName, appRuns],
+  );
+
+  const [agentStatus, setAgentStatus] = useState<FeedAgentStatus | null>(null);
+  const [agentSummary, setAgentSummary] =
+    useState<FeedAgentSummaryEnvelope | null>(null);
+  const [agentGoals, setAgentGoals] = useState<FeedAgentGoal[]>([]);
+  const [recentTrades, setRecentTrades] = useState<FeedActivityItem[]>([]);
+  const [predictionMarkets, setPredictionMarkets] = useState<
+    FeedPredictionMarket[]
+  >([]);
+  const [teamDashboard, setTeamDashboard] = useState<FeedTeamDashboard>({
+    agents: [],
+    summary: null,
+  });
+  const [teamConversations, setTeamConversations] = useState<
+    FeedTeamConversation[]
+  >([]);
+  const [agentChatMessages, setAgentChatMessages] = useState<FeedChatMessage[]>(
+    [],
+  );
+  const [wallet, setWallet] = useState<FeedWallet | null>(null);
+  const [tradingBalance, setTradingBalance] = useState(0);
+  const [chatInput, setChatInput] = useState("");
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const activeGoal =
+    agentGoals.find((goal) => goal.status === "active") ??
+    agentGoals[0] ??
+    null;
+  const agentPortfolio = agentSummary?.portfolio ?? null;
+  const teamTotals = teamDashboard.summary?.totals ?? null;
+  const surfaceTitle =
+    variant === "live"
+      ? "Feed Live Dashboard"
+      : variant === "running"
+        ? "Feed Run Dashboard"
+        : "Feed Operator Dashboard";
+  const showDashboard = focus !== "chat";
+  const showChat = focus !== "dashboard";
+  const controlAction = run?.session?.controls?.includes("pause")
+    ? "pause"
+    : run?.session?.controls?.includes("resume")
+      ? "resume"
+      : agentStatus?.autonomous
+        ? "pause"
+        : "resume";
+
+  const autonomyActive = controlAction === "pause";
+  const toggleAgentButton = useAgentElement<HTMLButtonElement>({
+    id: "steering-toggle-autonomy",
+    role: "toggle",
+    label: autonomyActive ? "Pause agent" : "Resume agent",
+    group: "Steering",
+    status: autonomyActive ? "active" : "inactive",
+    description: "Pause or resume Feed autonomous play",
+    onActivate: () => void handleToggleAgent(),
+  });
+  const chatInputElement = useAgentElement<HTMLInputElement>({
+    id: "steering-operator-message",
+    role: "text-input",
+    label: "Operator message",
+    group: "Steering",
+    description: "Tell Feed what to prioritize, avoid, or explain",
+    getValue: () => chatInput,
+    onFill: (value) => setChatInput(value),
+  });
+  const sendChatButton = useAgentElement<HTMLButtonElement>({
+    id: "steering-send-message",
+    role: "button",
+    label: "Send",
+    group: "Steering",
+    description: "Send the operator message to Feed",
+    onActivate: () => void handleSendChat(),
+  });
+
+  const loadDashboard = useCallback(async () => {
+    if (!run) return;
+
+    setLoading(true);
+    setStatusMessage(null);
+
+    try {
+      const [
+        status,
+        summary,
+        goals,
+        tradeFeed,
+        marketFeed,
+        dashboardRaw,
+        conversationsRaw,
+        chatRaw,
+        walletResponse,
+        tradingBalanceResponse,
+      ] = await Promise.all([
+        client.getFeedAgentStatus(),
+        client.getFeedAgentSummary(),
+        client.getFeedAgentGoals(),
+        client.getFeedAgentRecentTrades(),
+        client.getFeedPredictionMarkets({ pageSize: 3 }),
+        client.getFeedTeamDashboard(),
+        client.getFeedTeamConversations(),
+        client.getFeedAgentChat(),
+        client.getFeedAgentWallet(),
+        client.getFeedAgentTradingBalance(),
+      ]);
+
+      setAgentStatus(status);
+      setAgentSummary(extractAgentSummary(summary));
+      setAgentGoals(Array.isArray(goals) ? goals : []);
+      setRecentTrades(Array.isArray(tradeFeed.items) ? tradeFeed.items : []);
+      setPredictionMarkets(
+        Array.isArray(marketFeed.markets) ? marketFeed.markets : [],
+      );
+      const nextDashboard = extractTeamDashboard(dashboardRaw);
+      setTeamDashboard(nextDashboard);
+      setTeamConversations(
+        extractTeamConversations(conversationsRaw).conversations,
+      );
+      setAgentChatMessages(extractChatMessages(chatRaw));
+      setWallet(extractWallet(walletResponse));
+      setTradingBalance(extractTradingBalance(tradingBalanceResponse));
+      setStatusMessage(
+        status.agentStatus
+          ? `Feed agent status: ${status.agentStatus}`
+          : "Feed operator dashboard refreshed.",
+      );
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to load the Feed operator surface.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [run]);
+
+  useEffect(() => {
+    void loadDashboard();
+  }, [loadDashboard]);
+
+  useEffect(() => {
+    if (!run) return;
+    const timer = window.setInterval(() => {
+      void loadDashboard();
+    }, 12_000);
+    return () => window.clearInterval(timer);
+  }, [loadDashboard, run]);
+
+  const handleToggleAgent = useCallback(async () => {
+    if (!run) return;
+    setStatusMessage(null);
+    try {
+      const response = await client.controlAppRun(run.runId, controlAction);
+      await loadDashboard();
+      setStatusMessage(
+        response.message ??
+          (controlAction === "pause"
+            ? "Feed autonomy paused."
+            : "Feed autonomy resumed."),
+      );
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to update Feed autonomy.",
+      );
+    }
+  }, [controlAction, loadDashboard, run]);
+
+  const handleSendChat = useCallback(async () => {
+    const content = chatInput.trim();
+    if (!run || content.length === 0 || sending) return;
+
+    setSending(true);
+    setStatusMessage(null);
+    try {
+      const result = await client.sendAppRunMessage(run.runId, content);
+      setChatInput("");
+      setStatusMessage(result.message ?? "Suggestion sent to Feed.");
+      await loadDashboard();
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to send the Feed operator message.",
+      );
+    } finally {
+      setSending(false);
+    }
+  }, [chatInput, loadDashboard, run, sending]);
+
+  const handleSuggestedPrompt = useCallback(
+    async (prompt: string) => {
+      const content = prompt.trim();
+      if (!run || content.length === 0 || sending) return;
+
+      setSending(true);
+      setStatusMessage(null);
+      try {
+        const result = await client.sendAppRunMessage(run.runId, content);
+        setStatusMessage(result.message ?? "Suggestion sent to Feed.");
+        await loadDashboard();
+      } catch (error) {
+        setStatusMessage(
+          error instanceof Error
+            ? error.message
+            : "Failed to send the Feed operator message.",
+        );
+      } finally {
+        setSending(false);
+      }
+    },
+    [loadDashboard, run, sending],
+  );
+
+  if (!run) {
+    return (
+      <SurfaceEmptyState
+        title="Feed operator surface"
+        body="Launch Feed to see live team coordination, market activity, and the agent chat stream here."
+      />
+    );
+  }
+
+  return (
+    <section
+      className={`space-y-3 ${variant === "live" ? "p-3" : ""}`}
+      data-testid={
+        variant === "live"
+          ? "feed-live-operator-surface"
+          : variant === "running"
+            ? "feed-running-operator-surface"
+            : "feed-detail-operator-surface"
+      }
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="text-xs-tight font-semibold uppercase tracking-[0.18em] text-muted">
+          {surfaceTitle}
+        </div>
+        <SurfaceBadge tone={toneForStatusText(run.status)}>
+          {run.status}
+        </SurfaceBadge>
+        <SurfaceBadge tone={toneForViewerAttachment(run.viewerAttachment)}>
+          {run.viewerAttachment}
+        </SurfaceBadge>
+        <SurfaceBadge tone={toneForHealthState(run.health.state)}>
+          {run.health.state}
+        </SurfaceBadge>
+        <span className="ml-auto text-2xs uppercase tracking-[0.18em] text-muted">
+          {matchingRuns.length} active run{matchingRuns.length === 1 ? "" : "s"}
+        </span>
+      </div>
+
+      {showDashboard ? (
+        <SurfaceSection title="Live Status">
+          <SurfaceGrid>
+            <SurfaceCard
+              label="Agent"
+              value={agentStatus?.displayName ?? agentStatus?.name ?? "Waiting"}
+              subtitle={
+                agentStatus
+                  ? `${agentStatus.agentStatus ?? "idle"} · ${agentStatus.autonomous ? "autonomous" : "operator-led"}`
+                  : "The Feed agent has not published status yet."
+              }
+            />
+            <SurfaceCard
+              label="Current Focus"
+              value={activeGoal?.description ?? "No active goal recorded."}
+              subtitle={
+                activeGoal
+                  ? (() => {
+                      const progress = formatDecimal(activeGoal.progress, 0);
+                      return progress
+                        ? `${activeGoal.status} · ${progress}%`
+                        : activeGoal.status;
+                    })()
+                  : undefined
+              }
+            />
+            <SurfaceCard
+              label="Portfolio"
+              value={
+                agentPortfolio
+                  ? `${formatCurrency(agentPortfolio.totalAssets)} total assets`
+                  : "Portfolio not available yet."
+              }
+              subtitle={
+                agentPortfolio
+                  ? `${agentPortfolio.positions} positions · ${formatPnL(agentPortfolio.totalPnL)} total PnL`
+                  : undefined
+              }
+            />
+            <SurfaceCard
+              label="Team Coordination"
+              value={
+                teamDashboard.summary?.ownerName ??
+                `${teamDashboard.agents.length} team agents observed`
+              }
+              subtitle={
+                teamTotals
+                  ? `${formatCurrency(teamTotals.walletBalance)} wallet${
+                      asFiniteNumber(teamTotals.openPositions) != null
+                        ? ` · ${teamTotals.openPositions} open positions`
+                        : ""
+                    }`
+                  : "Team summary is not available yet."
+              }
+            />
+          </SurfaceGrid>
+        </SurfaceSection>
+      ) : null}
+
+      {showDashboard ? (
+        <SurfaceSection title="Market Watch">
+          <SurfaceCard
+            label="Prediction Markets"
+            value={listPreview(predictionMarkets)}
+          />
+          <div className="grid gap-2 md:grid-cols-3">
+            {recentTrades.slice(0, 3).map((trade) => (
+              <SurfaceCard
+                key={trade.id}
+                label={summarizeFeedActivity(trade)}
+                value={formatDetailTimestamp(trade.timestamp)}
+                subtitle={
+                  trade.pnl != null ? `PnL ${formatPnL(trade.pnl)}` : undefined
+                }
+              />
+            ))}
+            {recentTrades.length === 0 ? (
+              <SurfaceCard
+                label="Recent Trades"
+                value="No recent trades recorded."
+              />
+            ) : null}
+          </div>
+        </SurfaceSection>
+      ) : null}
+
+      {showChat ? (
+        <SurfaceSection title="Team & Chat">
+          <div className="grid gap-2 md:grid-cols-2">
+            <SurfaceCard
+              label="Team Conversations"
+              value={
+                teamConversations.length > 0
+                  ? teamConversations
+                      .slice(0, 3)
+                      .map((conversation) => conversation.name || "Untitled")
+                      .join(" · ")
+                  : "No team conversations yet."
+              }
+              subtitle={
+                teamConversations.length > 0
+                  ? `${teamConversations.filter((conversation) => conversation.isActive).length} active`
+                  : undefined
+              }
+            />
+            <SurfaceCard
+              label="Operator Channel"
+              value={
+                run.session?.canSendCommands
+                  ? "Ready for live suggestions."
+                  : "Command bridge reconnecting."
+              }
+              subtitle={formatDetailTimestamp(
+                run.lastHeartbeatAt ?? run.updatedAt,
+              )}
+            />
+          </div>
+          <div className="space-y-2">
+            {agentChatMessages.slice(-3).map((message) => (
+              <div
+                key={message.id}
+                className="rounded-xl border border-border/30 bg-bg/60 px-3 py-2"
+              >
+                <div className="flex items-center gap-2 text-2xs text-muted">
+                  <span className="uppercase">
+                    {message.senderName ?? message.senderId}
+                  </span>
+                  <span className="ml-auto">
+                    {formatDetailTimestamp(message.createdAt)}
+                  </span>
+                </div>
+                <div className="mt-1 whitespace-pre-wrap text-xs-tight leading-5 text-txt">
+                  {message.content}
+                </div>
+              </div>
+            ))}
+            {agentChatMessages.length === 0 ? (
+              <div className="rounded-xl border border-border/30 bg-bg/60 px-3 py-2 text-xs-tight italic text-muted">
+                No agent chat history yet.
+              </div>
+            ) : null}
+          </div>
+        </SurfaceSection>
+      ) : null}
+
+      {showChat ? (
+        <SurfaceSection title="Steering">
+          {run.session?.suggestedPrompts?.length ? (
+            <div className="flex flex-wrap gap-2">
+              {run.session.suggestedPrompts.slice(0, 4).map((prompt, index) => (
+                <FeedSuggestedPromptButton
+                  key={prompt}
+                  prompt={prompt}
+                  index={index}
+                  onSelect={(value) => void handleSuggestedPrompt(value)}
+                  disabled={sending}
+                />
+              ))}
+            </div>
+          ) : null}
+          <div className="grid gap-2 md:grid-cols-2">
+            <SurfaceCard
+              label="Autonomy"
+              value={
+                agentStatus?.autonomous
+                  ? "Autonomous play is active."
+                  : "Agent is paused or operator-led."
+              }
+              subtitle={
+                agentStatus
+                  ? `${agentStatus.autonomousTrading ? "Trading" : "Trading paused"} · ${agentStatus.autonomousPosting ? "Posting" : "Posting paused"}`
+                  : undefined
+              }
+            />
+            <SurfaceCard
+              label="Wallet"
+              value={
+                wallet ? formatCurrency(wallet.balance) : "Waiting for wallet"
+              }
+              subtitle={
+                wallet
+                  ? `${wallet.transactions.length} transactions · trading ${formatCurrency(tradingBalance)}`
+                  : undefined
+              }
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              ref={toggleAgentButton.ref}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="min-h-10 rounded-xl px-3 shadow-sm"
+              aria-current={autonomyActive}
+              onClick={() => void handleToggleAgent()}
+              {...toggleAgentButton.agentProps}
+            >
+              {controlAction === "pause" ? "Pause agent" : "Resume agent"}
+            </Button>
+          </div>
+          <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto]">
+            <Input
+              ref={chatInputElement.ref}
+              value={chatInput}
+              onChange={(event) => setChatInput(event.target.value)}
+              placeholder="Tell Feed what to prioritize, avoid, or explain."
+              className="min-h-11 rounded-xl"
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  void handleSendChat();
+                }
+              }}
+              {...chatInputElement.agentProps}
+            />
+            <Button
+              ref={sendChatButton.ref}
+              type="button"
+              className="min-h-11 rounded-xl px-4 shadow-sm"
+              onClick={() => void handleSendChat()}
+              disabled={sending || chatInput.trim().length === 0}
+              {...sendChatButton.agentProps}
+            >
+              {sending ? "Sending" : "Send"}
+            </Button>
+          </div>
+        </SurfaceSection>
+      ) : null}
+
+      {statusMessage ? (
+        <div className="rounded-2xl border border-border/35 bg-card/70 px-4 py-3 text-xs-tight leading-5 text-muted-strong">
+          {statusMessage}
+        </div>
+      ) : null}
+      <div className="text-2xs uppercase tracking-[0.18em] text-muted">
+        {loading ? "Refreshing Feed surface..." : "Feed surface ready."}
+      </div>
+    </section>
+  );
+}
+
+export function FeedTuiView() {
+  return (
+    <TerminalPluginView
+      id="feed"
+      label="Feed TUI"
+      description="Terminal Feed prediction market operator dashboard"
+      commands={[
+        "get-state",
+        "refresh-agent-status",
+        "open-live-dashboard",
+        "send-team-message",
+      ]}
+      endpoints={[
+        "/api/apps/feed/agent/status",
+        "/api/apps/feed/team/dashboard",
+        "/api/apps/feed/markets",
+      ]}
+    />
+  );
+}
+
+async function readFeedJson(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(
+      text || `[feed] ${response.status} ${response.statusText}`.trim(),
+    );
+  }
+  return text ? JSON.parse(text) : {};
+}
+
+export async function interact(
+  capability: string,
+  params?: Record<string, unknown>,
+): Promise<unknown> {
+  if (capability === "get-state" || capability === "refresh-agent-status") {
+    const [status, dashboard, markets] = await Promise.all([
+      fetch("/api/apps/feed/agent/status", {
+        headers: { Accept: "application/json" },
+      }).then(readFeedJson),
+      fetch("/api/apps/feed/team/dashboard", {
+        headers: { Accept: "application/json" },
+      }).then(readFeedJson),
+      fetch("/api/apps/feed/markets?pageSize=5", {
+        headers: { Accept: "application/json" },
+      }).then(readFeedJson),
+    ]);
+    return { status, dashboard, markets };
+  }
+
+  if (capability === "open-live-dashboard") {
+    return {
+      path: "/feed",
+      endpoints: [
+        "/api/apps/feed/agent/status",
+        "/api/apps/feed/team/dashboard",
+        "/api/apps/feed/markets",
+      ],
+    };
+  }
+
+  if (capability === "send-team-message") {
+    const content =
+      typeof params?.content === "string" && params.content.trim()
+        ? params.content.trim()
+        : "Terminal status check";
+    const response = await fetch("/api/apps/feed/team/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    });
+    return readFeedJson(response);
+  }
+
+  throw new Error(`Feed TUI does not support "${capability}".`);
+}
