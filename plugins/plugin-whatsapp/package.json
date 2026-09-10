@@ -72,7 +72,7 @@
     "@types/node": "^25.0.3",
     "@types/qrcode": "^1.5.5",
     "typescript": "^6.0.3",
-    "vitest": "^4.0.0"
+    "vitest": "^5.0.0"
   },
   "scripts": {
     "dev": "bun --hot build.ts",

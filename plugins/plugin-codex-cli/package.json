@@ -54,7 +54,7 @@
     "@types/bun": "^1.3.8",
     "@types/node": "^25.0.3",
     "typescript": "^6.0.3",
-    "vitest": "^4.0.0"
+    "vitest": "^5.0.0"
   },
   "peerDependencies": {
     "@elizaos/core": "workspace:*",

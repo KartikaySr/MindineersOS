@@ -62,7 +62,7 @@
     "@types/node": "^25.0.3",
     "esbuild": "^0.28.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.0.0"
+    "vitest": "^5.0.0"
   },
   "scripts": {
     "dev": "bun run build.ts --watch",

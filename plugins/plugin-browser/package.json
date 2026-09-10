@@ -47,7 +47,7 @@
     "puppeteer-core": "^24.37.5",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
-    "vitest": "^4.0.17"
+    "vitest": "^5.0.0"
   },
   "agentConfig": {
     "pluginType": "elizaos:plugin:1.0.0",
