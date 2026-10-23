@@ -1,0 +1,76 @@
+# MindineersOS frontend
+
+A React workspace for projects, missions, agent profiles, workflows, documents, research, and business operations. This application deploys as a static Vite site. It does not start a backend or database.
+
+## Run locally
+
+Use Node 24 and npm:
+
+```sh
+npm ci
+npm run dev
+npm test
+npm run build
+npm run preview
+```
+
+The dev command prints the available local URL. If port 5173 belongs to another application, Vite selects the next available port. Browser data is scoped to that URL's origin.
+
+## Deploy on Vercel
+
+### From the MindineersOS repository
+
+Import `KartikaySr/MindineersOS`, leave **Root Directory** at the repository root (`.`), and deploy. The root `vercel.json` installs only `apps/mindineers-web`, builds that app, and serves its `dist` directory. It deliberately bypasses the root Bun workspace and its backend postinstall scripts. No API keys, database URLs, or backend environment variables are required.
+
+For an existing Vercel project, set Root Directory back to `.` if a different folder was previously selected. An old project configuration may need to be reset before retrying deployment. The frontend uses hash routes, so URLs such as `/#workflows` reload without an SPA rewrite.
+
+### From this standalone folder
+
+Import this directory as a repository root. Its own `vercel.json` uses `npm ci`, `npm run build`, and `dist`.
+
+A local production build has been verified. A hosted Vercel deployment must still be confirmed in the user's account; a successful local build does not prove a hosted deployment.
+
+## Working features
+
+- Independent on-device workspaces, recovery of damaged stored data, explicit cross-tab conflict handling.
+- Searchable integration catalog with account labels, requested scopes, and region preferences; no secret collection.
+- Artifact library with upload, image/text preview, review status, tags, archive/restore and download.
+- First-use setup, optional example data, light/dark themes, reduced motion, responsive navigation, and global record search.
+- Projects and agent profiles with create/edit controls.
+- Mission board, list and date timeline; owner/search filters; drag-and-drop and keyboard-accessible status controls; dependencies, priority, deadline, and acceptance criteria. Completion is blocked while criteria or dependencies remain open in the mission planner.
+- Conversation threads, saved drafts, project context selection, pinned decisions, and message-to-mission conversion. Earlier drafts can be imported into a thread.
+- Workflow graph/list editor with node types, dependencies, retry/timeout validation, cycle detection, and saved graph versions.
+- Detailed module workspaces with searchable record lists, configuration sections, linked records, checklists, comments, version comparison/restore, and JSON export.
+- Document preview and Markdown export, evidence registers, manually entered evaluation trials, and deterministic invoice draft calculations.
+- Calendar month/agenda views, meeting notes, time conflict warnings and follow-up mission creation; CRM pipeline/contact views, duplicate warnings, timeline entries and CSV export.
+- File upload/download using IndexedDB; workspace JSON backups include metadata and records, but not uploaded file binaries.
+- Scope inheritance designer for organization/workspace/project/agent/run defaults. These drafts do not enforce server policy.
+- Optional Three.js office with keyboard-accessible agent controls and imported furniture/portrait resources.
+- Source library documenting all ten supplied archives and their reuse/license boundaries.
+
+## Backend boundary
+
+AI responses, agent execution, live run controls, authentication, permissions, OAuth, team presence, cross-device sync, external publishing, billing, and verified telemetry are not connected. Their screens must not imply successful execution. No simulated execution engine is shipped. Example records are ordinary editable data and are identified in the header when included during setup.
+
+The browser persistence layer is intended for frontend use and development before backend integration. It is not an enterprise authorization boundary or a multi-user database. Do not put provider secrets in frontend environment variables or local storage.
+
+## Scope status
+
+This is an expanded frontend implementation, **not yet a verified completion of every requirement in the full-scope architecture**. Some enterprise modules currently provide structured configuration/review workspaces rather than their final specialized interactions. See `FRONTEND_STATUS.md` for remaining frontend work; adding backend endpoints alone does not finish those gaps.
+
+The code currently uses JavaScript/JSX. A strict TypeScript migration and broader automated accessibility/end-to-end coverage remain outstanding. The optional Three.js chunk is lazy loaded and still emits a bundle-size warning.
+
+## Source structure
+
+- `src/main.jsx`: application shell, existing overview screens, local state and dialogs.
+- `src/MissionPlanner.jsx`: mission planning and completion review.
+- `src/Conversations.jsx`: conversation and context workspace.
+- `src/Workbench.jsx`: detail workspaces, versions, workflow editor, invoice/evidence/trial tools, scoped settings.
+- `src/workbench-model.js`: pure validation and calculation helpers.
+- `src/workbench-schema.js`: module sections and setting definitions.
+- `src/storage.js`: imported-backup validation.
+- `src/files.js`: local binary storage.
+- `src/Office.jsx`: optional 3D view.
+- `tests/`: invariant and backup validation tests.
+
+See `THIRD_PARTY_NOTICES.md` before redistributing imported resources commercially. Framework references are not running framework integrations.

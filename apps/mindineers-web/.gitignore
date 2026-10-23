@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.*
+*.log
+.vercel/
+
+# Source JavaScript is authored, not generated. Override the parent monorepo rule.
+!src/**/*.js

@@ -1,3 +1,16 @@
+## MindineersOS web workspace
+
+The standalone frontend lives in [`apps/mindineers-web`](apps/mindineers-web). For Vercel, import this repository, leave Root Directory at `.` and deploy. The root `vercel.json` installs and builds only this frontend, without running the Bun monorepo or starting backend/database services. No backend credentials are needed for the frontend build.
+
+```sh
+npm ci --prefix apps/mindineers-web --workspaces=false
+npm run dev --prefix apps/mindineers-web
+```
+
+The frontend supports local editing and optional example content. AI execution, authentication, integrations and cloud storage are not connected. This is not yet the complete full-scope product: see the [frontend status](apps/mindineers-web/FRONTEND_STATUS.md) and [deployment guide](apps/mindineers-web/README.md). The existing framework documentation below describes the inherited repository, not features verified in the new frontend.
+
+---
+
 <div align="center">
   <h1>🧠 MindineersOS</h1>
   <p><strong>The Sovereign AI Agent Operating System</strong></p>

@@ -1,0 +1,85 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  makeGraph,
+  validateGraph,
+  invoiceTotal,
+  effectiveSetting,
+  validHttpUrl,
+} from "../src/workbench-model.js";
+test("workflow dependencies reject cycles and dangling references", () => {
+  const graph = makeGraph();
+  assert.deepEqual(validateGraph(graph), []);
+  graph.edges.push({ from: "verify", to: "brief" });
+  assert.match(validateGraph(graph).join(" "), /cycle/);
+  graph.edges = [{ from: "missing", to: "brief" }];
+  assert.match(validateGraph(graph).join(" "), /missing/);
+});
+test("workflow bounds retries and rejects duplicate links", () => {
+  const graph = makeGraph();
+  graph.nodes[0].retries = 6;
+  graph.edges.push(graph.edges[0]);
+  const result = validateGraph(graph).join(" ");
+  assert.match(result, /retries/);
+  assert.match(result, /Duplicate/);
+});
+test("invoice sums use integer minor units and round tax once", () =>
+  assert.deepEqual(
+    invoiceTotal(
+      [
+        { quantity: 3, unitMinor: 1999 },
+        { quantity: 1, unitMinor: 250 },
+      ],
+      825,
+    ),
+    { subtotal: 6247, tax: 515, total: 6762 },
+  ));
+test("invoice rejects fractional quantities, negative prices and overflow", () => {
+  for (const rows of [
+    [{ quantity: 1.5, unitMinor: 10 }],
+    [{ quantity: 1, unitMinor: -1 }],
+    [{ quantity: 2, unitMinor: Number.MAX_SAFE_INTEGER }],
+  ])
+    assert.throws(() => invoiceTotal(rows));
+  assert.throws(() => invoiceTotal([], 10001));
+});
+test("settings resolve the nearest explicit override including empty or zero values", () => {
+  const scopes = [
+    { name: "Organization", values: { budget: 50 } },
+    { name: "Workspace", values: { budget: 0 } },
+    { name: "Run", values: {} },
+  ];
+  assert.deepEqual(effectiveSetting(scopes, "budget"), {
+    value: 0,
+    source: "Workspace",
+  });
+});
+test("evidence links accept only HTTP(S)", () => {
+  assert.equal(validHttpUrl("https://example.org/research"), true);
+  for (const url of [
+    "javascript:alert(1)",
+    "data:text/html,test",
+    "file:///secret",
+    "oops",
+  ])
+    assert.equal(validHttpUrl(url), false);
+});
+import { dependencyErrors } from "../src/workbench-model.js";
+test("mission dependencies detect cycles across multiple tasks", () => {
+  assert.equal(
+    dependencyErrors([
+      { id: "a", dependsOn: ["b"] },
+      { id: "b", dependsOn: ["c"] },
+      { id: "c", dependsOn: [] },
+    ]),
+    false,
+  );
+  assert.equal(
+    dependencyErrors([
+      { id: "a", dependsOn: ["b"] },
+      { id: "b", dependsOn: ["c"] },
+      { id: "c", dependsOn: ["a"] },
+    ]),
+    true,
+  );
+});

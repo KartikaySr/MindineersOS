@@ -1,0 +1,168 @@
+[
+  {
+    "name": "Claw3D",
+    "archive": "Claw3D-main.zip",
+    "sha256": "9bc1d7cfa02153501e9e54a391c8397d017dc4d587073627cdad393d6394fad3",
+    "role": "Spatial office",
+    "source": "Claw3D-main/docs/agent-state-model-spec.md",
+    "reference": "/resources/claw3d/reference.md",
+    "license": "MIT",
+    "status": "Reference imported; runtime not connected",
+    "target": "office",
+    "templateTitle": "Operational agent states",
+    "templateDescription": "Track idle, working, waiting, blocked, and error states from real runtime events.",
+    "files": [
+      "Claw3D-main/docs/agent-state-model-spec.md",
+      "Claw3D-main/public/office-assets/models/furniture/chairDesk.glb",
+      "Claw3D-main/public/office-assets/models/furniture/pottedPlant.glb",
+      "Claw3D-main/public/office-assets/models/furniture/loungeSofa.glb",
+      "Claw3D-main/public/office-assets/models/furniture/tableCoffee.glb"
+    ]
+  },
+  {
+    "name": "Eigent",
+    "archive": "eigent-main.zip",
+    "sha256": "974f5ff34a04bc00857538ea1f92bf8ce637c8a3ece78208303edb835d03a935",
+    "role": "Workforce design",
+    "source": "eigent-main/docs/model-capabilities.md",
+    "reference": "/resources/eigent/reference.md",
+    "license": "Apache-2.0",
+    "status": "Reference imported; runtime not connected",
+    "target": "teams",
+    "templateTitle": "Specialist workforce",
+    "templateDescription": "Coordinate a research, browser, document, and engineering team with explicit handoffs.",
+    "files": [
+      "eigent-main/docs/model-capabilities.md",
+      "eigent-main/src/assets/agent/browser.png",
+      "eigent-main/src/assets/agent/document.png",
+      "eigent-main/src/assets/agent/terminal.png",
+      "eigent-main/src/assets/agent/multimodal.png"
+    ]
+  },
+  {
+    "name": "Meta model cookbook",
+    "archive": "meta-model-cookbook-main.zip",
+    "sha256": "77f4ea5f035987521a5679f4f9cdac9bd40ede029a9feafa674bad10791d687f",
+    "role": "Agent patterns",
+    "source": "meta-model-cookbook-main/02_agent_patterns/03_managing_context/README.md",
+    "reference": "/resources/meta-model-cookbook/reference.md",
+    "license": "MIT",
+    "status": "Reference imported; runtime not connected",
+    "target": "workflows",
+    "templateTitle": "Context review workflow",
+    "templateDescription": "Inspect context \u2192 summarize sources \u2192 preserve citations \u2192 request review.",
+    "files": [
+      "meta-model-cookbook-main/02_agent_patterns/03_managing_context/README.md"
+    ]
+  },
+  {
+    "name": "Muse Code SDK",
+    "archive": "muse-code-sdk-main.zip",
+    "sha256": "e21df6b65554dac9fddb4ba39367092272e0459ffa43fb48b54626cf15830049",
+    "role": "Coding session protocol",
+    "source": "muse-code-sdk-main/clients/sdk-quickstart/README.md",
+    "reference": "/resources/muse-code-sdk/reference.md",
+    "license": "MIT",
+    "status": "Reference imported; runtime not connected",
+    "target": "engineering",
+    "templateTitle": "Coding session plan",
+    "templateDescription": "Define an objective, inspect repository context, review proposed changes, and record verification evidence. Requires a separate Muse host.",
+    "files": [
+      "muse-code-sdk-main/clients/sdk-quickstart/README.md"
+    ]
+  },
+  {
+    "name": "Google ADK",
+    "archive": "adk-python-main.zip",
+    "sha256": "b7b7873e22e50d189006f65948dd982d4067247a412a6861cc455f8b2b9202ef",
+    "role": "Agent orchestration",
+    "source": "adk-python-main/contributing/samples/hitl/tool_human_in_the_loop_config/README.md",
+    "reference": "/resources/google-adk/reference.md",
+    "license": "Apache-2.0",
+    "status": "Reference imported; runtime not connected",
+    "target": "workflows",
+    "templateTitle": "Human review workflow",
+    "templateDescription": "Draft an action \u2192 bind approval to its exact arguments \u2192 wait for review \u2192 dispatch through the broker.",
+    "files": [
+      "adk-python-main/contributing/samples/hitl/tool_human_in_the_loop_config/README.md"
+    ]
+  },
+  {
+    "name": "Agents Towards Production",
+    "archive": "agents-towards-production-main.zip",
+    "sha256": "8f418f92ed460a86eba6cacaacfdb2dce3ca499910a7e05fe594b3f86346cd6f",
+    "role": "Production reference",
+    "source": null,
+    "reference": null,
+    "license": "Custom non-commercial",
+    "status": "Reference only; commercial reuse not imported",
+    "target": "help",
+    "templateTitle": null,
+    "templateDescription": null,
+    "files": []
+  },
+  {
+    "name": "CAMEL",
+    "archive": "camel-master.zip",
+    "sha256": "e8c60b7bde68631d400070a24e79ea18cff3d8b84738a2fd9bd661c3bb4b2c26",
+    "role": "Multi-agent coordination",
+    "source": "camel-master/docs/cookbooks/multi_agent_society/agents_society.md",
+    "reference": "/resources/camel/reference.md",
+    "license": "Apache-2.0",
+    "status": "Reference imported; runtime not connected",
+    "target": "teams",
+    "templateTitle": "Research society",
+    "templateDescription": "Assign a planner, researcher, challenger, and reviewer; define bounded turns and required evidence.",
+    "files": [
+      "camel-master/docs/cookbooks/multi_agent_society/agents_society.md"
+    ]
+  },
+  {
+    "name": "Ouroboros",
+    "archive": "ouroboros-main.zip",
+    "sha256": "4bfe3494245bbb6215830275202e4835a03cfabde48a1f36c225cd00ffbf5a8a",
+    "role": "Improvement experiments",
+    "source": "ouroboros-main/docs/examples/client_views/README.md",
+    "reference": "/resources/ouroboros/reference.md",
+    "license": "MIT",
+    "status": "Reference imported; runtime not connected",
+    "target": "improvement",
+    "templateTitle": "Controlled improvement proposal",
+    "templateDescription": "Record a baseline \u2192 propose a bounded change \u2192 evaluate in isolation \u2192 compare regressions \u2192 request human promotion.",
+    "files": [
+      "ouroboros-main/docs/examples/client_views/README.md"
+    ]
+  },
+  {
+    "name": "llamafile",
+    "archive": "llamafile-main.zip",
+    "sha256": "595e0a531ab170d0a47dd2bdf02c8bf6c8dfd2240f163d3e9882dce57f92527b",
+    "role": "Local inference",
+    "source": "llamafile-main/docs/agentfile.md",
+    "reference": "/resources/llamafile/reference.md",
+    "license": "Apache-2.0",
+    "status": "Reference imported; runtime not connected",
+    "target": "models",
+    "templateTitle": "Local inference qualification",
+    "templateDescription": "Document model license, memory needs, hardware, endpoint, data policy, and acceptance tests before activation.",
+    "files": [
+      "llamafile-main/docs/agentfile.md"
+    ]
+  },
+  {
+    "name": "OpenJarvis",
+    "archive": "OpenJarvis-main.zip",
+    "sha256": "f87dc829dcbedb671f4bcae6e1d903dd56b218afd5fa9e0d42e5feaa633c0873",
+    "role": "Personal assistance",
+    "source": "OpenJarvis-main/examples/daily_digest/README.md",
+    "reference": "/resources/openjarvis/reference.md",
+    "license": "Apache-2.0",
+    "status": "Reference imported; runtime not connected",
+    "target": "missions",
+    "templateTitle": "Daily briefing",
+    "templateDescription": "Review authorized calendar and task sources; prepare a cited digest for human review without sending messages.",
+    "files": [
+      "OpenJarvis-main/examples/daily_digest/README.md"
+    ]
+  }
+]

@@ -1,0 +1,5 @@
+node_modules
+.git
+mobile-check.html
+tests
+*.zip
