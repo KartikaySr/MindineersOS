@@ -83,3 +83,12 @@ test("mission dependencies detect cycles across multiple tasks", () => {
     true,
   );
 });
+test("workflow port contracts reject incompatible types and malformed JSON", () => {
+  const g = makeGraph();
+  g.nodes[0].outputType = "Text";
+  g.nodes[1].inputType = "Number";
+  g.nodes[0].inputSchema = "{bad";
+  const errors = validateGraph(g).join(" ");
+  assert.match(errors, /Type mismatch/);
+  assert.match(errors, /valid JSON/);
+});

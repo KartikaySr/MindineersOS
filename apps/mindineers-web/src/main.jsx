@@ -1,4 +1,21 @@
-import React, { useState, useEffect, useCallback, Suspense, lazy } from "react";
+import HelpCenter from "./HelpCenter";
+import RunWorkspace from "./RunWorkspace";
+import CreativeStudio from "./CreativeStudio";
+import RuntimeSettings from "./RuntimeSettings";
+import KnowledgeHub from "./KnowledgeHub";
+import EngineeringDesk from "./EngineeringDesk";
+import DocumentsStudio from "./DocumentsStudio";
+import Decisions from "./Decisions";
+import Administration, { Subscription } from "./Administration";
+import "./product.css";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+  lazy,
+} from "react";
 import { validateWorkspace } from "./storage";
 import { saveFile, downloadFile } from "./files";
 import { fields } from "./fields";
@@ -90,10 +107,7 @@ function App() {
   const [workbenchMode, setWorkbenchMode] = useState(() =>
     [
       "workflows",
-      "engineering",
       "research",
-      "knowledge",
-      "documents",
       "teams",
       "simulation",
       "evaluations",
@@ -101,9 +115,7 @@ function App() {
       "finance",
       "operations",
       "delivery",
-      "creative",
       "tools",
-      "observability",
     ].includes(location.hash.slice(1)),
   );
   const [workspaceIndex, setWorkspaceIndex] = useState(initialWorkspace.index),
@@ -150,6 +162,7 @@ function App() {
     return () => window.removeEventListener("storage", sync);
   }, [workspaceIndex.active, data]);
 
+  const officeAgents = useMemo(() => data.agents.slice(0, 4), [data.agents]);
   const current =
     route === "runs"
       ? [
@@ -185,10 +198,7 @@ function App() {
       setWorkbenchMode(
         [
           "workflows",
-          "engineering",
           "research",
-          "knowledge",
-          "documents",
           "teams",
           "simulation",
           "evaluations",
@@ -196,9 +206,7 @@ function App() {
           "finance",
           "operations",
           "delivery",
-          "creative",
           "tools",
-          "observability",
         ].includes(location.hash.slice(1)),
       );
       window.scrollTo({ top: 0, behavior: "instant" });
@@ -596,7 +604,7 @@ function App() {
               }
             >
               <Office
-                agents={data.agents.slice(0, 4)}
+                agents={officeAgents}
                 compact
                 onSelect={agentSelect}
                 reduced={data.settings.motion}
@@ -1025,14 +1033,9 @@ function App() {
             }}
           />
         )}
-        {[
-          "simulation",
-          "evaluations",
-          "engineering",
-          "creative",
-          "finance",
-          "observability",
-        ].includes(route) && (
+        {["simulation", "evaluations", "finance", "observability"].includes(
+          route,
+        ) && (
           <div className="notice">
             <Icon name="Info" size={17} />{" "}
             {route === "evaluations"
@@ -1198,7 +1201,7 @@ function App() {
             fallback={<div className="scene-loading">Opening your studio…</div>}
           >
             <Office
-              agents={data.agents.slice(0, 4)}
+              agents={officeAgents}
               onSelect={agentSelect}
               reduced={data.settings.motion}
             />
@@ -1747,7 +1750,27 @@ function App() {
     );
   }
   let page =
-    route === "customers" ? (
+    route === "help" ? (
+      <HelpCenter data={data} />
+    ) : ["runs", "observability"].includes(route) ? (
+      <RunWorkspace data={data} update={update} route={route} />
+    ) : route === "creative" ? (
+      <CreativeStudio data={data} update={update} />
+    ) : route === "models" ? (
+      <RuntimeSettings data={data} update={update} route={route} />
+    ) : route === "knowledge" ? (
+      <KnowledgeHub data={data} update={update} />
+    ) : route === "engineering" ? (
+      <EngineeringDesk data={data} update={update} />
+    ) : route === "documents" ? (
+      <DocumentsStudio data={data} update={update} />
+    ) : route === "inbox" ? (
+      <Decisions data={data} update={update} />
+    ) : route === "security" ? (
+      <Administration data={data} update={update} />
+    ) : route === "usage" ? (
+      <Subscription data={data} update={update} />
+    ) : route === "customers" ? (
       <Customers data={data} update={update} />
     ) : route === "files" ? (
       <Artifacts data={data} update={update} />
@@ -2081,7 +2104,7 @@ function App() {
               </button>
             </div>
           )}
-          {route === "runs" || workbenchMode ? (
+          {workbenchMode ? (
             <Workbench key={route} route={route} data={data} update={update} />
           ) : (
             page

@@ -45,6 +45,25 @@ export function validateGraph(graph) {
   if (!graph.nodes.length) errors.push("Add at least one node.");
   if (ids.size !== graph.nodes.length) errors.push("Node IDs must be unique.");
   for (const n of graph.nodes) {
+    for (const key of ["inputSchema", "outputSchema"]) {
+      if (n[key]) {
+        try {
+          const schema = JSON.parse(n[key]);
+          if (!schema || typeof schema !== "object" || Array.isArray(schema))
+            errors.push(`${n.name}: ${key} must be a JSON object.`);
+        } catch {
+          errors.push(`${n.name}: ${key} is not valid JSON.`);
+        }
+      }
+    }
+    if (
+      n.type === "Parallel" &&
+      n.concurrency !== undefined &&
+      (!Number.isInteger(n.concurrency) ||
+        n.concurrency < 1 ||
+        n.concurrency > 100)
+    )
+      errors.push(`${n.name}: concurrency must be between 1 and 100.`);
     if (!n.name.trim()) errors.push("Every node needs a name.");
     if (!nodeTypes.includes(n.type)) errors.push("Unknown node type.");
     if (!Number.isInteger(Number(n.timeout)) || n.timeout < 1)
@@ -56,6 +75,18 @@ export function validateGraph(graph) {
   for (const e of graph.edges) {
     if (!ids.has(e.from) || !ids.has(e.to))
       errors.push("An edge references a missing node.");
+    const source = graph.nodes.find((n) => n.id === e.from),
+      target = graph.nodes.find((n) => n.id === e.to);
+    if (
+      source?.outputType &&
+      target?.inputType &&
+      source.outputType !== "Any" &&
+      target.inputType !== "Any" &&
+      source.outputType !== target.inputType
+    )
+      errors.push(
+        `Type mismatch: ${source.name} produces ${source.outputType}, but ${target.name} expects ${target.inputType}.`,
+      );
     const key = e.from + ">" + e.to;
     if (seenEdges.has(key)) errors.push("Duplicate dependency.");
     seenEdges.add(key);

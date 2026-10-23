@@ -1,0 +1,69 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { build } from "esbuild";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL, fileURLToPath } from "node:url";
+
+test("product screens render empty and restored data without requiring backend access", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "mindineers-render-"));
+  try {
+    const src = fileURLToPath(new URL("../src/", import.meta.url));
+    const code = `
+ import React from 'react';
+ import {renderToString} from 'react-dom/server';
+ import Documents from '${src}DocumentsStudio.jsx';
+ import Decisions from '${src}Decisions.jsx';
+ import Admin,{Subscription} from '${src}Administration.jsx';
+ import Knowledge from '${src}KnowledgeHub.jsx';
+ import Engineering from '${src}EngineeringDesk.jsx';
+ import Creative from '${src}CreativeStudio.jsx';
+ import Runtime from '${src}RuntimeSettings.jsx';
+ import Runs,{exampleRun,validateTrace} from '${src}RunWorkspace.jsx';
+ import Help from '${src}HelpCenter.jsx';
+ import {validateProduct} from '${src}product-model.js';
+ const now=new Date().toISOString();
+ const base={settings:{name:'Test',budget:50},projects:[],agents:[],records:{documents:[],missions:[]},product:{}};
+ const populated={...base,product:{
+ documents:[{id:'d',name:'Doc',kind:'Document',body:'# Hello',rows:[],slides:[],comments:[],versions:[],updatedAt:now}],
+ decisions:[{id:'r',name:'Request',destination:'Account',payload:'Text',scopes:[],effects:'Draft',rollback:'None',expiresAt:'2099-01-01T00:00',version:1,state:'Pending',mode:'Local review',previous:[]}],
+ members:[{id:'m',name:'Member',email:'member@example.org',role:'member',state:'Invitation draft'}],roles:[],policies:[],subscription:[],
+ sources:[{id:'s',kind:'source',name:'Source',url:'https://example.org',excerpt:'Evidence',collection:'General',scope:'Workspace',state:'Reference only',retrievedAt:'2026-10-23',notes:''}],
+ memories:[],
+ changes:[{id:'c',name:'Change',repository:'',branch:'',files:[{id:'f',path:'README.md',before:'A',after:'B'}],checks:[],comments:[],release:'',rollback:'',status:'Draft'}],
+ campaigns:[{id:'c',name:'Campaign',audience:'',message:'',brand:'',channel:'Website',rights:'',origin:'User authored',variants:[],schedule:'',account:'',status:'Draft'}],
+ modelProfiles:[{id:'p',name:'Model',provider:'Compatible API',model:'',endpoint:'',region:'',context:'32000',fallback:'',transfer:'Ask before cloud transfer',enabled:true}],devices:[]
+ }};
+ validateProduct(populated.product);
+ validateTrace(exampleRun);
+ validateProduct({traces:[exampleRun]});
+ const screens=[Documents,Decisions,Admin,Subscription,Knowledge,Engineering,Creative,Runtime,Runs,Help];
+ export const results=[base,populated].flatMap(data=>screens.map(Component=>renderToString(React.createElement(Component,{data,update:()=>{}}))));
+ `;
+    const outfile = join(dir, "screens.mjs");
+    await build({
+      stdin: {
+        contents: code,
+        resolveDir: fileURLToPath(new URL("..", import.meta.url)),
+        loader: "jsx",
+      },
+      bundle: true,
+      platform: "node",
+      format: "esm",
+      banner: {
+        js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);",
+      },
+      outfile,
+      logLevel: "silent",
+    });
+    const { results } = await import(pathToFileURL(outfile).href);
+    assert.equal(results.length, 20);
+    for (const html of results) {
+      assert.ok(html.length > 300);
+      assert.doesNotMatch(html, /Let’s get your workspace back/);
+    }
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

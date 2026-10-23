@@ -921,6 +921,130 @@ export function Workflow({ graph, save, onRun }) {
               })
             }
           />
+          {["inputSchema", "outputSchema"].map((key) => (
+            <Field
+              key={key}
+              label={
+                key === "inputSchema"
+                  ? "Input schema (JSON)"
+                  : "Output schema (JSON)"
+              }
+              type="textarea"
+              value={node[key] || ""}
+              onChange={(value) =>
+                save({
+                  ...graph,
+                  nodes: graph.nodes.map((n) =>
+                    n.id === node.id ? { ...n, [key]: value } : n,
+                  ),
+                })
+              }
+            />
+          ))}
+          <Field
+            label="Input type"
+            options={["Any", "Text", "Object", "Array", "Number", "Boolean"]}
+            value={node.inputType || "Any"}
+            onChange={(inputType) =>
+              save({
+                ...graph,
+                nodes: graph.nodes.map((n) =>
+                  n.id === node.id ? { ...n, inputType } : n,
+                ),
+              })
+            }
+          />
+          <Field
+            label="Output type"
+            options={["Any", "Text", "Object", "Array", "Number", "Boolean"]}
+            value={node.outputType || "Any"}
+            onChange={(outputType) =>
+              save({
+                ...graph,
+                nodes: graph.nodes.map((n) =>
+                  n.id === node.id ? { ...n, outputType } : n,
+                ),
+              })
+            }
+          />
+          <Field
+            label="Failure behavior"
+            options={[
+              "Stop workflow",
+              "Request human review",
+              "Retry then stop",
+              "Continue with failure output",
+            ]}
+            value={node.failureMode || "Stop workflow"}
+            onChange={(failureMode) =>
+              save({
+                ...graph,
+                nodes: graph.nodes.map((n) =>
+                  n.id === node.id ? { ...n, failureMode } : n,
+                ),
+              })
+            }
+          />
+          <Field
+            label="Idempotency key template"
+            value={node.idempotencyKey || ""}
+            onChange={(idempotencyKey) =>
+              save({
+                ...graph,
+                nodes: graph.nodes.map((n) =>
+                  n.id === node.id ? { ...n, idempotencyKey } : n,
+                ),
+              })
+            }
+          />
+          {node.type === "Branch" && (
+            <Field
+              label="Branch condition (expression draft)"
+              value={node.condition || ""}
+              onChange={(condition) =>
+                save({
+                  ...graph,
+                  nodes: graph.nodes.map((n) =>
+                    n.id === node.id ? { ...n, condition } : n,
+                  ),
+                })
+              }
+            />
+          )}
+          {node.type === "Parallel" && (
+            <Field
+              label="Concurrency limit"
+              type="number"
+              value={node.concurrency || 2}
+              onChange={(v) =>
+                save({
+                  ...graph,
+                  nodes: graph.nodes.map((n) =>
+                    n.id === node.id ? { ...n, concurrency: Number(v) } : n,
+                  ),
+                })
+              }
+            />
+          )}
+          {node.type === "Merge" && (
+            <Field
+              label="Merge policy"
+              options={[
+                "Wait for all",
+                "First successful",
+                "Collect available",
+              ]}
+              value={node.mergePolicy || "Wait for all"}
+              onChange={(mergePolicy) =>
+                save({
+                  ...graph,
+                  nodes: graph.nodes.map((n) =>
+                    n.id === node.id ? { ...n, mergePolicy } : n,
+                  ),
+                })
+              }
+            />
+          )}
           {["timeout", "retries"].map((k) => (
             <Field
               key={k}

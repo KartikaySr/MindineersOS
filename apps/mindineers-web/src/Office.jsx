@@ -99,6 +99,7 @@ export default function Office({
           object.position.set(x, -bounds.min.y * scale, z);
           object.rotation.y = rotation;
           group.add(object);
+          if (!document.hidden) renderer.render(scene, camera);
           imported.push(object);
         },
         undefined,
@@ -120,7 +121,10 @@ export default function Office({
       rotation = group.rotation.y;
     };
     const move = (e) => {
-      if (drag) group.rotation.y = rotation + (e.clientX - downX) * 0.007;
+      if (drag) {
+        group.rotation.y = rotation + (e.clientX - downX) * 0.007;
+        if (reduced && !document.hidden) renderer.render(scene, camera);
+      }
     };
     const up = (e) => {
       if (!drag) return;
@@ -142,6 +146,7 @@ export default function Office({
       renderer.setSize(el.clientWidth, el.clientHeight);
       camera.aspect = el.clientWidth / el.clientHeight;
       camera.updateProjectionMatrix();
+      if (!document.hidden) renderer.render(scene, camera);
     };
     const observer = new ResizeObserver(resize);
     observer.observe(el);
@@ -153,7 +158,7 @@ export default function Office({
             m.userData.base + (reduced ? 0 : Math.sin(t * 0.0015 + i) * 0.045)),
       );
       renderer.render(scene, camera);
-      if (!document.hidden) frame = requestAnimationFrame(animate);
+      if (!document.hidden && !reduced) frame = requestAnimationFrame(animate);
     }
     const visibility = () => {
       cancelAnimationFrame(frame);

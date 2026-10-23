@@ -48,6 +48,12 @@ A local production build has been verified. A hosted Vercel deployment must stil
 - Optional Three.js office with keyboard-accessible agent controls and imported furniture/portrait resources.
 - Source library documenting all ten supplied archives and their reuse/license boundaries.
 
+## Dedicated product workspaces
+
+The latest frontend adds document, sheet and slide editing with comments and checkpoints; version-bound local approval reviews; knowledge excerpts and memory review; engineering change proposals with supplied file diffs and manual check evidence; creative variants and publication planning; member, role and policy drafts; subscription preferences; model/device profiles; imported execution traces with task graphs, events, artifacts and checkpoints; and searchable help with a content-free diagnostic export.
+
+These are local product interactions. They do not grant permissions, execute changes, publish content, charge subscriptions or run models. Workflow drafts also validate JSON schema syntax and basic edge type compatibility. The optional 3D office respects reduced motion and avoids rebuilding its scene for unrelated edits.
+
 ## Backend boundary
 
 AI responses, agent execution, live run controls, authentication, permissions, OAuth, team presence, cross-device sync, external publishing, billing, and verified telemetry are not connected. Their screens must not imply successful execution. No simulated execution engine is shipped. Example records are ordinary editable data and are identified in the header when included during setup.
