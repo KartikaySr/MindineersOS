@@ -1836,7 +1836,10 @@ function App() {
           finish={({ examples, ...settings }) =>
             update((d) => ({
               ...d,
-              ...(examples && !d.projects.length && !d.agents.length
+              ...(examples &&
+              !d.projects.length &&
+              !d.agents.length &&
+              !Object.values(d.records).some((items) => items.length)
                 ? {
                     projects: structuredClone(seedProjects),
                     agents: structuredClone(initialAgents).map((a) => ({
@@ -2327,7 +2330,7 @@ function Modal({
           <Button
             kind="dark"
             onClick={() => {
-              update({ ...fresh(), ...m.value });
+              update(() => ({ ...fresh(), ...m.value }));
               close();
               notify("Workspace imported");
             }}
@@ -2360,7 +2363,9 @@ function Modal({
             kind="danger"
             onClick={() => {
               update(
-                m.type === "reset" ? fresh() : (d) => ({ ...d, messages: [] }),
+                m.type === "reset"
+                  ? () => fresh()
+                  : (d) => ({ ...d, messages: [] }),
               );
               close();
             }}
