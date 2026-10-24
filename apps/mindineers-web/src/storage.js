@@ -1,3 +1,4 @@
+import { validateExperience } from "./experience-model.js";
 import { validateProduct } from "./product-model.js";
 const object = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 const text = (v, max = 200000) => typeof v === "string" && v.length <= max;
@@ -17,6 +18,31 @@ export function validateWorkspace(v) {
     v.settings.budget < 0
   )
     throw new Error("Invalid workspace preferences");
+  validateExperience(v.settings);
+  if (v.onboardingDraft != null) {
+    const { step, form } = v.onboardingDraft;
+    if (
+      !Number.isInteger(step) ||
+      step < 0 ||
+      step > 2 ||
+      !object(form) ||
+      !text(form.name, 120) ||
+      !text(form.workspace, 120) ||
+      !["Light", "Dark"].includes(form.theme) ||
+      !["Personal", "Founder", "Team"].includes(form.useCase) ||
+      typeof form.motion !== "boolean" ||
+      typeof form.examples !== "boolean" ||
+      typeof form.tour !== "boolean" ||
+      !(
+        form.budget === "" ||
+        (Number.isFinite(form.budget) &&
+          form.budget >= 0 &&
+          form.budget <= 1000000)
+      ) ||
+      !["Ask before acting", "Draft and review"].includes(form.autonomy)
+    )
+      throw new Error("Invalid setup draft");
+  }
   const record = (r) =>
     object(r) &&
     text(r.id, 120) &&

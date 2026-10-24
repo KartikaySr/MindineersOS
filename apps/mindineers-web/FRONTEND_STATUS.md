@@ -1,6 +1,6 @@
 # Frontend implementation status
 
-Updated 23 October 2026. Backend/database implementation remains explicitly gated on user approval.
+Updated 24 October 2026. Backend/database implementation remains explicitly gated on user approval.
 
 ## Implemented and usable locally
 
@@ -19,6 +19,12 @@ Independent workspace switching, corrupt-data recovery and cross-tab conflict de
 - Help: searchable guides and diagnostics that omit record contents and personal details.
 - Workflow editing: input/output JSON schema syntax, basic type compatibility, branch conditions, parallel concurrency, merge and failure-policy drafts.
 
+## Entry and personal experience added 24 October
+
+Public landing page with interactive previews/use cases/FAQs; light green and luxury dark themes; account entry and recovery availability screens; editable local profile/avatar; three-step resumable setup; personalized dashboard with saved ordering/visibility; six-step guided tour; Core navigation and saved-record briefing; offline/missing-route notices; lazy-loaded product modules. See TWO_PHASE_DELIVERY.md.
+
+CRM now includes CSV field mapping, validation previews, duplicate skips, reviewed contact merge and guarded undo. Review requests now support local delegation/escalation, routing history, snoozing and revision comparison.
+
 ## Backend-dependent functions with connection boundaries
 
 Authentication/session recovery, organization permissions, agent/model responses, workflow execution, live run state and controls, real tool approvals, provider connections/OAuth, external calendar sync, multi-user presence, billing, telemetry, verified evaluation runs, external publishing, device workers, retention enforcement, secure search/indexing and synchronization.
@@ -28,14 +34,14 @@ Authentication/session recovery, organization permissions, agent/model responses
 These are real frontend gaps, not tasks that can all be solved by merely adding a backend:
 
 - Strict TypeScript conversion; typed transport adapters and generated API contracts once the backend interface is agreed.
-- Cloud organization creation and administration; sign-in, invitation, account recovery and effective-permission interfaces. Local workspace creation/switching with isolated stores is implemented.
+- Cloud organization creation, connected identity challenge/error/session flows, and effective-permission interfaces. Local workspace switching and account-entry availability screens are implemented; these are not working cloud authentication.
 - Full workflow named typed ports, full JSON Schema validation, conditional/parallel semantics, nested subflows, trigger history and configuration diff UI. Basic schema/type and concurrency validation is implemented.
 - Server-connected run DAG, partial artifacts, acknowledged controls, replay, checkpoints and incident correlation.
-- Approval delegation, escalation, snooze and detailed revision diff; version-bound payload review and invalidation are implemented locally.
+- Server-authorized review ownership, timed notifications and field-level revision highlighting. Local delegation, escalation, snooze, before/after comparison and version invalidation are implemented.
 - Rich document suggestions, selected-region proposals and more artifact preview formats. Basic document/sheet/slide editors are implemented.
 - Evidence-map visualization, contradiction linking and knowledge ingestion/sync state. Local source search and memory confirmation/forget are implemented.
 - Connected repository tree/CI interfaces and terminal capability boundaries. Local supplied-file diffs/review and creative variant editing/publication drafts are implemented.
-- CRM merge/deduplication and import mapping, delivery portal scope, finance reconciliation and procurement-specific interactions.
+- Delivery portal scope, finance reconciliation and procurement-specific interactions; cross-record reference remapping after CRM merge. CSV import mapping, duplicate skips, field selection and guarded undo are implemented.
 - Advanced simulation/scenario comparisons, statistical evaluation reporting, improvement promotion/rollback controls.
 - Detailed connector/device lifecycle and catalog install/update/revocation. Model/device configuration profiles are implemented; health/resource inspection requires runtime contracts.
 - Connected billing/subscription administration, effective permission/access review and security incident UI. Local role/policy/plan preferences are implemented.

@@ -1,3 +1,4 @@
+import CustomerTools from "./CustomerTools";
 import React, { useState, useRef, useEffect } from "react";
 const stages = ["Lead", "Qualified", "Proposal", "Won", "Lost"];
 export default function Customers({ data, update }) {
@@ -141,6 +142,7 @@ export default function Customers({ data, update }) {
           </button>
         </div>
       </div>
+      <CustomerTools items={items} update={update} />
       <div className="mission-filters">
         <input
           aria-label="Search customers"

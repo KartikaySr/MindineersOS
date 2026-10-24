@@ -41,6 +41,7 @@ export function reviseApproval(request, changes) {
     id: request.id,
     version: request.version + 1,
     state: "Pending",
+    snoozedUntil: "",
     decision: null,
     previous: [
       ...(request.previous || []),
@@ -48,6 +49,10 @@ export function reviseApproval(request, changes) {
         version: request.version,
         payload: request.payload,
         destination: request.destination,
+        scopes: [...request.scopes],
+        effects: request.effects || "",
+        rollback: request.rollback || "",
+        expiresAt: request.expiresAt,
         state: request.state,
         decision: request.decision,
       },
@@ -218,6 +223,21 @@ export function validateProduct(value) {
       Number.isSafeInteger(d.version) &&
       d.version > 0 &&
       rows(d.scopes, text) &&
+      (d.assignedReviewer === undefined || text(d.assignedReviewer)) &&
+      (d.snoozedUntil === undefined || text(d.snoozedUntil)) &&
+      (d.escalated === undefined || typeof d.escalated === "boolean") &&
+      (d.routing === undefined ||
+        rows(d.routing, (e) =>
+          fields(e, [
+            "id",
+            "action",
+            "actor",
+            "at",
+            "reviewer",
+            "reason",
+            "until",
+          ]),
+        )) &&
       rows(
         d.previous,
         (v) =>

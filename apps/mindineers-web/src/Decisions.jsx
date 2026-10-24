@@ -1,3 +1,4 @@
+import ReviewRouting from "./ReviewRouting";
 import React, { useState } from "react";
 import { Button, Field, Dialog, Tabs, Empty, useCollection } from "./ProductUI";
 import {
@@ -47,7 +48,7 @@ export default function Decisions({ data, update }) {
       </div>
       <div className="toolbar">
         <Tabs
-          values={["Pending", "Approved", "Declined", "All"]}
+          values={["Pending", "Snoozed", "Approved", "Declined", "All"]}
           value={filter}
           onChange={setFilter}
         />
@@ -56,7 +57,17 @@ export default function Decisions({ data, update }) {
       <div className="product-split">
         <aside className="product-list">
           {requests
-            .filter((r) => filter === "All" || r.state === filter)
+            .filter((r) => {
+              const snoozed =
+                r.state === "Pending" &&
+                Date.parse(r.snoozedUntil) > Date.now();
+              return (
+                filter === "All" ||
+                (filter === "Snoozed"
+                  ? snoozed
+                  : r.state === filter && !snoozed)
+              );
+            })
             .map((r) => (
               <button
                 key={r.id}
@@ -135,6 +146,55 @@ export default function Decisions({ data, update }) {
                 {request.state} by {request.decision?.reviewer} ·{" "}
                 {new Date(request.decision?.at).toLocaleString()}
               </div>
+            )}
+            <ReviewRouting
+              key={request.id}
+              request={request}
+              actor={data.settings.name}
+              reviewers={[
+                data.settings.name,
+                ...(data.product?.members || []).map((m) => m.name),
+              ]}
+              save={(next) =>
+                setRequests((rows) =>
+                  rows.map((r) => (r.id === next.id ? next : r)),
+                )
+              }
+            />
+            {request.previous?.length > 0 && (
+              <details>
+                <summary>Compare latest revision</summary>
+                {[
+                  "destination",
+                  "payload",
+                  "effects",
+                  "rollback",
+                  "expiresAt",
+                  "scopes",
+                ].map((key) => {
+                  const before = request.previous.at(-1)[key],
+                    after = request[key];
+                  return (
+                    <div key={key}>
+                      <h4>{key}</h4>
+                      <div className="profile-fields">
+                        <pre className="product-code">
+                          Previous:{" "}
+                          {before === undefined
+                            ? "Not captured in older snapshot"
+                            : Array.isArray(before)
+                              ? before.join(", ")
+                              : before}
+                        </pre>
+                        <pre className="product-code">
+                          Current:{" "}
+                          {Array.isArray(after) ? after.join(", ") : after}
+                        </pre>
+                      </div>
+                    </div>
+                  );
+                })}
+              </details>
             )}
             <details>
               <summary>

@@ -1,12 +1,19 @@
-import HelpCenter from "./HelpCenter";
-import RunWorkspace from "./RunWorkspace";
-import CreativeStudio from "./CreativeStudio";
-import RuntimeSettings from "./RuntimeSettings";
-import KnowledgeHub from "./KnowledgeHub";
-import EngineeringDesk from "./EngineeringDesk";
-import DocumentsStudio from "./DocumentsStudio";
-import Decisions from "./Decisions";
-import Administration, { Subscription } from "./Administration";
+import Welcome, { ThemeToggle } from "./Welcome";
+import { AccountEntry, ProfileExperience } from "./AccountExperience";
+import PersonalDashboard from "./PersonalDashboard";
+import { CoreAssistant, GuidedTour } from "./WorkspaceGuide";
+const HelpCenter = lazy(() => import("./HelpCenter"));
+const RunWorkspace = lazy(() => import("./RunWorkspace"));
+const CreativeStudio = lazy(() => import("./CreativeStudio"));
+const RuntimeSettings = lazy(() => import("./RuntimeSettings"));
+const KnowledgeHub = lazy(() => import("./KnowledgeHub"));
+const EngineeringDesk = lazy(() => import("./EngineeringDesk"));
+const DocumentsStudio = lazy(() => import("./DocumentsStudio"));
+const Decisions = lazy(() => import("./Decisions"));
+const Administration = lazy(() => import("./Administration"));
+const Subscription = lazy(() =>
+  import("./Administration").then((m) => ({ default: m.Subscription })),
+);
 import "./product.css";
 import React, {
   useState,
@@ -21,7 +28,7 @@ import { saveFile, downloadFile } from "./files";
 import { fields } from "./fields";
 import Workbench from "./Workbench";
 import Onboarding from "./Onboarding";
-import MissionPlanner from "./MissionPlanner";
+import MissionPlanner, { MissionEditor } from "./MissionPlanner";
 import Conversations from "./Conversations";
 import Connections from "./Connections";
 import Artifacts from "./Artifacts";
@@ -40,6 +47,7 @@ import { resources } from "./resources";
 import { Icons } from "./icons";
 import { modules, initialAgents, seedProjects, seeds, domains } from "./data";
 import "./style.css";
+import "./experience.css";
 const Office = lazy(() => import("./Office"));
 const KEY = "mindineers.workspace.v1";
 const fresh = () => ({
@@ -104,6 +112,18 @@ function Avatar({ agent, size = "" }) {
   );
 }
 function App() {
+  const [online, setOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const change = () => setOnline(navigator.onLine);
+    window.addEventListener("online", change);
+    window.addEventListener("offline", change);
+    return () => {
+      window.removeEventListener("online", change);
+      window.removeEventListener("offline", change);
+    };
+  }, []);
+  const [assistant, setAssistant] = useState(null),
+    [tourOpen, setTourOpen] = useState(false);
   const [workbenchMode, setWorkbenchMode] = useState(() =>
     [
       "workflows",
@@ -124,7 +144,7 @@ function App() {
     [recoveryRaw, setRecoveryRaw] = useState(initialWorkspace.raw),
     [storageConflict, setStorageConflict] = useState(null);
   const [data, setData] = useState(() => initialWorkspace.data || fresh()),
-    [route, setRoute] = useState(location.hash.slice(1) || "home"),
+    [route, setRoute] = useState(location.hash.slice(1) || "welcome"),
     [query, setQuery] = useState(""),
     [searchOpen, setSearchOpen] = useState(false),
     [modal, setModal] = useState(null),
@@ -164,21 +184,28 @@ function App() {
 
   const officeAgents = useMemo(() => data.agents.slice(0, 4), [data.agents]);
   const current =
-    route === "runs"
+    route === "profile"
       ? [
-          "runs",
-          "Run control",
-          "Activity",
-          "Execution history, decisions, and verified outcomes.",
+          "profile",
+          "Your profile",
+          "User",
+          "Personal details, preferences, and your account.",
         ]
-      : route === "resources"
+      : route === "runs"
         ? [
-            "resources",
-            "Resource library",
-            "Boxes",
-            "Build on the resources you already have.",
+            "runs",
+            "Run control",
+            "Activity",
+            "Execution history, decisions, and verified outcomes.",
           ]
-        : modules.find((m) => m[0] === route) || modules[0];
+        : route === "resources"
+          ? [
+              "resources",
+              "Resource library",
+              "Boxes",
+              "Build on the resources you already have.",
+            ]
+          : modules.find((m) => m[0] === route) || modules[0];
   useEffect(() => {
     if (recovery || storageConflict) return;
     try {
@@ -191,7 +218,7 @@ function App() {
   }, [data, workspaceIndex.active, recovery, storageConflict]);
   useEffect(() => {
     const fn = () => {
-      setRoute(location.hash.slice(1) || "home");
+      setRoute(location.hash.slice(1) || "welcome");
       setMobile(false);
       setFilter("All");
       setView("Grid");
@@ -241,6 +268,11 @@ function App() {
       ? "reduced"
       : "full";
   }, [data.settings]);
+  useEffect(() => {
+    setAssistant(null);
+    setTourOpen(false);
+    document.title = `MindineersOS — ${route === "welcome" ? "A world of work. One clear mind." : { "sign-in": "Sign in", "sign-up": "Create account", recovery: "Recover access", join: "Join a team" }[route] || current[1]}`;
+  }, [route, workspaceIndex.active]);
   const update = (fn) =>
     setData((d) => (typeof fn === "function" ? fn(d) : { ...d, ...fn }));
   const selectWorkspace = (id) => {
@@ -365,6 +397,8 @@ function App() {
   const visibleModules = [
     ...modules,
     ["resources", "Resource library", "Boxes"],
+    ["profile", "Your profile", "User"],
+    ["welcome", "Product website", "Home"],
   ].filter((m) => m[1].toLowerCase().includes(query.toLowerCase()));
   const hero = (
     <div className="hero">
@@ -1555,6 +1589,9 @@ function App() {
               {settingsScope.toUpperCase()} PREFERENCES
             </span>
             <h2>Make yourself at home.</h2>
+            <a href="#profile" className="exp-button">
+              Edit your full profile & appearance
+            </a>
             {["User", "Workspace", "Device"].includes(settingsScope) ? (
               <>
                 <label>
@@ -1749,8 +1786,48 @@ function App() {
       </div>
     );
   }
+  const toggleTheme = () =>
+    update((d) => ({
+      ...d,
+      settings: {
+        ...d.settings,
+        theme: d.settings.theme === "Dark" ? "Light" : "Dark",
+      },
+    }));
+  const startTour = () => {
+    update((d) => ({
+      ...d,
+      settings: {
+        ...d.settings,
+        tour: {
+          step: d.settings.tour?.state === "Paused" ? d.settings.tour.step : 0,
+          state: "Active",
+        },
+      },
+    }));
+    setTourOpen(true);
+  };
+  if (!recovery && route === "welcome")
+    return <Welcome theme={data.settings.theme} toggle={toggleTheme} />;
+  if (!recovery && ["sign-in", "sign-up", "recovery", "join"].includes(route))
+    return (
+      <AccountEntry
+        key={route}
+        route={route}
+        theme={data.settings.theme}
+        toggle={toggleTheme}
+      />
+    );
   let page =
-    route === "help" ? (
+    route === "profile" ? (
+      <ProfileExperience
+        key={workspaceIndex.active}
+        data={data}
+        update={update}
+        startTour={startTour}
+        resumeSetup={() => update((d) => ({ ...d, onboarded: false }))}
+      />
+    ) : route === "help" ? (
       <HelpCenter data={data} />
     ) : ["runs", "observability"].includes(route) ? (
       <RunWorkspace data={data} update={update} route={route} />
@@ -1779,7 +1856,29 @@ function App() {
     ) : route === "resources" ? (
       ResourceLibrary()
     ) : route === "home" ? (
-      Home()
+      <PersonalDashboard
+        data={data}
+        update={update}
+        startTour={startTour}
+        openAssistant={(prompt) => setAssistant({ prompt })}
+        createProject={() => setModal({ type: "project" })}
+        createMission={(name) =>
+          setModal({
+            type: "mission",
+            record: {
+              id: crypto.randomUUID(),
+              name,
+              description: "",
+              status: "Draft",
+              owner: "You",
+              priority: "Normal",
+              due: "",
+              dependsOn: [],
+              criteria: [],
+            },
+          })
+        }
+      />
     ) : route === "chat" ? (
       <Conversations data={data} update={update} />
     ) : route === "feed" ? (
@@ -1809,7 +1908,16 @@ function App() {
     ) : domains[route] ? (
       RecordPage()
     ) : (
-      Home()
+      <div className="empty">
+        <h1>This page could not be found.</h1>
+        <p>Choose a workspace destination or return to your dashboard.</p>
+        <a className="exp-button" href="#home">
+          Open dashboard
+        </a>
+        <a className="exp-button" href="#help">
+          Browse help
+        </a>
+      </div>
     );
   return (
     <>
@@ -1856,7 +1964,12 @@ function App() {
       {!data.onboarded && !recovery && (
         <Onboarding
           settings={data.settings}
-          finish={({ examples, ...settings }) =>
+          draft={data.onboardingDraft}
+          saveDraft={(onboardingDraft) =>
+            update((d) => ({ ...d, onboardingDraft }))
+          }
+          finish={({ examples, tour, useCase, setupLater, ...settings }) => {
+            if (tour && !setupLater) setTourOpen(true);
             update((d) => ({
               ...d,
               ...(examples &&
@@ -1874,9 +1987,17 @@ function App() {
                   }
                 : {}),
               onboarded: true,
-              settings: { ...d.settings, ...settings },
-            }))
-          }
+              onboardingDraft: setupLater ? d.onboardingDraft : null,
+              settings: {
+                ...d.settings,
+                ...settings,
+                ...(useCase
+                  ? { profile: { ...d.settings.profile, useCase } }
+                  : {}),
+                ...(tour ? { tour: { step: 0, state: "Active" } } : {}),
+              },
+            }));
+          }}
         />
       )}
       <a
@@ -1996,9 +2117,17 @@ function App() {
             Settings
             <Icon name="ArrowUpRight" size={15} />
           </a>
-          <button className="profile" onClick={() => navigate("settings")}>
+          <a href="#welcome" className="settings-link">
+            <Icon name="Home" />
+            Product website
+          </a>
+          <button className="profile" onClick={() => navigate("profile")}>
             <span className="user-avatar">
-              {data.settings.name.slice(0, 1) || "K"}
+              {data.settings.profile?.avatar ? (
+                <img src={data.settings.profile.avatar} alt="" />
+              ) : (
+                data.settings.name.slice(0, 1) || "Y"
+              )}
             </span>
             <span>
               <strong>{data.settings.name || "Your profile"}</strong>
@@ -2024,6 +2153,14 @@ function App() {
             </span>
           </div>
           <div className="top-actions">
+            <ThemeToggle theme={data.settings.theme} toggle={toggleTheme} />
+            <button
+              className="icon-button"
+              aria-label="Start guided tour"
+              onClick={startTour}
+            >
+              <Icon name="Compass" />
+            </button>
             <span className="preview-label">
               {data.includesExamples
                 ? "EXAMPLE CONTENT · ON-DEVICE"
@@ -2042,11 +2179,21 @@ function App() {
               onClick={() => navigate("inbox")}
             >
               <Icon name="Bell" />
-              {data.approvals.some((a) => a.state === "Pending") && <i />}
+              {(data.product?.decisions || []).some(
+                (a) => a.state === "Pending",
+              ) && <i />}
             </button>
-            <span className="user-avatar small">
-              {data.settings.name.slice(0, 1) || "K"}
-            </span>
+            <button
+              className="user-avatar small"
+              aria-label="Edit your profile"
+              onClick={() => navigate("profile")}
+            >
+              {data.settings.profile?.avatar ? (
+                <img src={data.settings.profile.avatar} alt="" />
+              ) : (
+                data.settings.name.slice(0, 1) || "Y"
+              )}
+            </button>
           </div>
         </header>
         <main
@@ -2054,6 +2201,13 @@ function App() {
           tabIndex={-1}
           className={route === "chat" ? "main chat-main" : "main"}
         >
+          {!online && (
+            <div className="notice" role="status">
+              You are offline. Saved local work remains available. Cloud
+              services are not connected; this is not a cloud synchronization
+              status.
+            </div>
+          )}
           {storageConflict && (
             <div className="notice conflict-notice">
               <div>
@@ -2077,7 +2231,7 @@ function App() {
               </Button>
             </div>
           )}
-          {route !== "home" && route !== "chat" && (
+          {route !== "home" && route !== "chat" && route !== "profile" && (
             <div className="page-heading">
               <span className="eyebrow">
                 {route === "office"
@@ -2088,7 +2242,9 @@ function App() {
               <p>{current[3]}</p>
             </div>
           )}
-          {!["home", "feed", "office", "resources", "runs"].includes(route) && (
+          {!["home", "feed", "office", "resources", "runs", "profile"].includes(
+            route,
+          ) && (
             <div className="workspace-mode" aria-label="Workspace mode">
               <button
                 className={!workbenchMode ? "active" : ""}
@@ -2107,7 +2263,15 @@ function App() {
           {workbenchMode ? (
             <Workbench key={route} route={route} data={data} update={update} />
           ) : (
-            page
+            <Suspense
+              fallback={
+                <div className="notice" role="status">
+                  Opening your workspace…
+                </div>
+              }
+            >
+              {page}
+            </Suspense>
           )}
           <footer className="footer">
             <span>Made for a mind like yours.</span>
@@ -2115,6 +2279,31 @@ function App() {
           </footer>
         </main>
       </div>
+      <button
+        className="core-launcher"
+        onClick={() => setAssistant({ prompt: "" })}
+        aria-label="Open Mindineers Core guide"
+      >
+        <Icon name="Sparkles" size={18} /> Ask Core
+      </button>
+      {assistant && (
+        <CoreAssistant
+          key={workspaceIndex.active}
+          data={data}
+          route={route}
+          initialPrompt={assistant.prompt}
+          navigate={navigate}
+          onClose={() => setAssistant(null)}
+        />
+      )}
+      {tourOpen && (
+        <GuidedTour
+          settings={data.settings}
+          update={update}
+          navigate={navigate}
+          close={() => setTourOpen(false)}
+        />
+      )}
       {toast && data.settings.notifications && (
         <div className="toast" role="status">
           <Icon name="CheckCircle2" size={18} />
@@ -2204,7 +2393,16 @@ function App() {
           </div>
         </Dialog>
       )}
-      {modal && (
+      {modal?.type === "mission" && (
+        <MissionEditor
+          task={modal.record}
+          tasks={data.records.missions || []}
+          agents={data.agents}
+          close={() => setModal(null)}
+          save={(record) => saveRecord("missions", record)}
+        />
+      )}
+      {modal && modal.type !== "mission" && (
         <Modal
           key={modal.type + (modal.id || modal.record?.id || "")}
           modal={modal}

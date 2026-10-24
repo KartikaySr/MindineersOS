@@ -229,7 +229,7 @@ export default function MissionPlanner({ data, update }) {
     </section>
   );
 }
-function MissionEditor({ task, tasks, agents, close, save }) {
+export function MissionEditor({ task, tasks, agents, close, save }) {
   const ref = useRef(),
     [draft, setDraft] = useState({
       ...task,

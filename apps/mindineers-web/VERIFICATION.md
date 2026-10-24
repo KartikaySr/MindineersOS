@@ -1,21 +1,23 @@
-# Frontend verification — 23 October 2026
+# Frontend verification — 24 October 2026
 
-## Automated checks
+37 automated tests pass, including dashboard priorities, Core navigation invariants, profile/backup validation, CRM CSV/mapping/merge, review routing/expiry, plus existing workflow, storage, approval and spreadsheet checks. Server rendering covers empty/populated product workspaces and 12 entry/discovery/support surfaces.
 
-27 automated tests pass, including empty/populated server rendering of ten dedicated product screens. Additional checks cover approval payload snapshots and invalidation, expiry, safe spreadsheet formulas/cycles/division, product backup validation and workflow schema/type errors. Server rendering is not browser interaction testing.
+The production build succeeds with the available Node 22.23.2; the app targets Node 24 (previous revision also built on Node 24). Main product modules now load on demand. The optional Three.js office still produces a large-chunk warning. No hosted Vercel deployment has been verified.
 
-Production Vite builds succeed from the standalone frontend and from the clean repository using the exact root deployment commands. Test coverage includes workspace backup rejection, separate workspace persistence, damaged data preservation, graph cycles/dangling edges/retry bounds, invoice arithmetic, inheritance resolution, safe evidence URLs, and mission dependency cycles.
+## Browser checks completed this revision
 
-Earlier builds used Node 22.23.2; this revision was also tested and built with Node 24.15.0. Deployment targets Node 24. The optional lazy-loaded Three.js bundle remains approximately 580 kB before gzip and produces a Vite size warning. No live Vercel deployment has been verified.
+- Light and dark public landing pages; mobile landing layout.
+- Isolated test workspace setup, role selection, persisted setup step/preferences after reload.
+- Guided tour launch, pause and resume at the saved step.
+- Profile save and reload persistence; dashboard focus reflected saved profile.
+- Dashboard section hiding and ordering; mission quick capture through full mission editor and resulting priority row.
+- Core briefing, subsequent request and navigation into workflows.
+- Mobile dashboard and drawer; mobile header overflow identified and corrected.
 
-## Browser verification completed
+A Core effect returned a non-cleanup value and crashed on a second response; fixed and retested successfully.
 
-Onboarding with optional examples; example workspace creation; workflow field editing; saving a version; version listing; invalid self-dependency detection with save disabled; removing that dependency; saving a workflow version; reload persistence. Desktop workflow layout visually inspected.
+## Still unverified
 
-## Browser verification blocked later in the session
+Browser access became disabled later in the session. Final regression after lazy loading, CRM import/merge UI, review routing UI, avatar upload, account form submission, keyboard-only and screen-reader coverage still need browser acceptance testing. Pure logic and server rendering tests do not substitute for these checks.
 
-Local browser use remains disabled according to the browser tool, including after the user indicated they would enable it. The new documents, decisions, knowledge, engineering, creative, administration, runtime, trace and help screens have not received browser interaction or visual testing. New mission/conversation screens, isolated workspace switching/recovery, integration inspector, artifact library, and their mobile/dark/accessibility states have not yet received browser acceptance testing in this revision. Do not represent automated compilation as equivalent to that testing.
-
-## Not verified
-
-Backend contracts, authentication, OAuth, external execution, provider inference, collaboration, database persistence, or billing. These services have not been built as part of this frontend task.
+Authentication, OAuth, live execution, cloud collaboration, database persistence and billing remain outside this frontend implementation.

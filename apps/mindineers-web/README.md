@@ -30,6 +30,12 @@ Import this directory as a repository root. Its own `vercel.json` uses `npm ci`,
 
 A local production build has been verified. A hosted Vercel deployment must still be confirmed in the user's account; a successful local build does not prove a hosted deployment.
 
+## Public website and personal experience
+
+The default URL now opens the public landing page; `/#home` opens the personal command center. `/#profile` edits the local profile and appearance. Account entry routes are `/#sign-in`, `/#sign-up`, `/#recovery` and `/#join`; cloud identity remains unconnected.
+
+The two-phase delivery adds light green/luxury dark themes, resumable setup, dashboard customization, a six-step guided tour, and a persistent Core guide for local navigation and saved-record briefings. See [TWO_PHASE_DELIVERY.md](TWO_PHASE_DELIVERY.md) for exact scope and verification. CRM import/merge and review routing are now dedicated interactions.
+
 ## Working features
 
 - Independent on-device workspaces, recovery of damaged stored data, explicit cross-tab conflict handling.

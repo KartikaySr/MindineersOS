@@ -22,6 +22,13 @@ test("product screens render empty and restored data without requiring backend a
  import Runtime from '${src}RuntimeSettings.jsx';
  import Runs,{exampleRun,validateTrace} from '${src}RunWorkspace.jsx';
  import Help from '${src}HelpCenter.jsx';
+ import Welcome from '${src}Welcome.jsx';
+ import {AccountEntry,ProfileExperience} from '${src}AccountExperience.jsx';
+ import Dashboard from '${src}PersonalDashboard.jsx';
+ import {GuidedTour,CoreAssistant} from '${src}WorkspaceGuide.jsx';
+ import Onboarding from '${src}Onboarding.jsx';
+ import CustomerTools from '${src}CustomerTools.jsx';
+ import ReviewRouting from '${src}ReviewRouting.jsx';
  import {validateProduct} from '${src}product-model.js';
  const now=new Date().toISOString();
  const base={settings:{name:'Test',budget:50},projects:[],agents:[],records:{documents:[],missions:[]},product:{}};
@@ -39,6 +46,17 @@ test("product screens render empty and restored data without requiring backend a
  validateTrace(exampleRun);
  validateProduct({traces:[exampleRun]});
  const screens=[Documents,Decisions,Admin,Subscription,Knowledge,Engineering,Creative,Runtime,Runs,Help];
+ export const entryResults=[
+ React.createElement(CustomerTools,{items:[],update:()=>{}}),
+ React.createElement(ReviewRouting,{request:populated.product.decisions[0],reviewers:[],actor:"Test",save:()=>{}}),
+ React.createElement(Welcome,{theme:'Light',toggle:()=>{}}),
+ ...['sign-in','sign-up','recovery','join'].map(route=>React.createElement(AccountEntry,{route,theme:'Dark',toggle:()=>{}})),
+ React.createElement(ProfileExperience,{data:base,update:()=>{},startTour:()=>{}}),
+ React.createElement(Dashboard,{data:base,update:()=>{},startTour:()=>{},openAssistant:()=>{}}),
+ React.createElement(GuidedTour,{settings:{tour:{step:5,state:'Active'}},update:()=>{},navigate:()=>{},close:()=>{}}),
+ React.createElement(CoreAssistant,{data:base,route:'home',initialPrompt:'brief me',onClose:()=>{},navigate:()=>{}}),
+ React.createElement(Onboarding,{settings:{name:'You',workspace:'Test',theme:'Light',motion:false,budget:50},finish:()=>{}})
+ ].map(renderToString);
  export const results=[base,populated].flatMap(data=>screens.map(Component=>renderToString(React.createElement(Component,{data,update:()=>{}}))));
  `;
     const outfile = join(dir, "screens.mjs");
@@ -57,8 +75,10 @@ test("product screens render empty and restored data without requiring backend a
       outfile,
       logLevel: "silent",
     });
-    const { results } = await import(pathToFileURL(outfile).href);
+    const { results, entryResults } = await import(pathToFileURL(outfile).href);
     assert.equal(results.length, 20);
+    assert.equal(entryResults.length, 12);
+    for (const html of entryResults) assert.ok(html.length > 100);
     for (const html of results) {
       assert.ok(html.length > 300);
       assert.doesNotMatch(html, /Let’s get your workspace back/);
