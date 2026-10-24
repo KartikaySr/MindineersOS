@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { Button, Tabs, Empty, useCollection } from "./ProductUI";
 import { download } from "./product-model";
+import { validateTrace } from "./domains/execution/trace";
+export { validateTrace } from "./domains/execution/trace";
+import RunControls from "./domains/execution/RunControls";
+import RunReview from "./domains/execution/RunReview";
+import WorkflowCanvas from "./domains/execution/WorkflowCanvas";
 export const exampleRun = {
   id: "example-run",
   name: "Research brief · example",
@@ -85,48 +90,6 @@ export const exampleRun = {
     },
   ],
 };
-export function validateTrace(v) {
-  const str = (x) => typeof x === "string";
-  if (
-    !v ||
-    !["id", "name", "mode", "status", "startedAt"].every((k) => str(v[k]))
-  )
-    throw new Error("Trace metadata is invalid.");
-  if (
-    !Array.isArray(v.nodes) ||
-    v.nodes.length > 500 ||
-    !v.nodes.every(
-      (n) =>
-        ["id", "name", "agent", "state"].every((k) => str(n[k])) &&
-        Array.isArray(n.dependencies) &&
-        n.dependencies.every(str),
-    )
-  )
-    throw new Error("Trace nodes are invalid.");
-  if (
-    !Array.isArray(v.events) ||
-    v.events.length > 10000 ||
-    !v.events.every((e) =>
-      ["id", "at", "level", "node", "message"].every((k) => str(e[k])),
-    )
-  )
-    throw new Error("Trace events are invalid.");
-  if (
-    !Array.isArray(v.artifacts) ||
-    !v.artifacts.every((a) =>
-      ["id", "name", "type", "content"].every((k) => str(a[k])),
-    )
-  )
-    throw new Error("Trace artifacts are invalid.");
-  if (
-    !Array.isArray(v.checkpoints) ||
-    !v.checkpoints.every((c) =>
-      ["id", "name", "at", "node"].every((k) => str(c[k])),
-    )
-  )
-    throw new Error("Trace checkpoints are invalid.");
-  return v;
-}
 export default function RunWorkspace({ data, update, route }) {
   const [traces, setTraces] = useCollection(data, update, "traces"),
     [example, setExample] = useState(false),
@@ -209,9 +172,6 @@ export default function RunWorkspace({ data, update, route }) {
               </span>
             </div>
             <div className="wb-actions">
-              <Button disabled>Pause</Button>
-              <Button disabled>Resume</Button>
-              <Button disabled>Cancel</Button>
               <Button onClick={() => download("run-trace.json", run)}>
                 Export trace
               </Button>
@@ -224,12 +184,36 @@ export default function RunWorkspace({ data, update, route }) {
             Live controls require an authorized runtime connection.
           </p>
           <Tabs
-            values={["Graph", "Events", "Artifacts", "Checkpoints"]}
+            values={[
+              "Graph",
+              "Events",
+              "Artifacts",
+              "Checkpoints",
+              "Replay & plans",
+              "Controls",
+            ]}
             value={tab}
             onChange={setTab}
           />
           {tab === "Graph" ? (
             <>
+              <WorkflowCanvas
+                readOnly
+                graph={{
+                  nodes: run.nodes.map((n) => ({
+                    ...n,
+                    type: n.agent,
+                    timeout: 0,
+                    retries: 0,
+                  })),
+                  edges: run.nodes.flatMap((n) =>
+                    n.dependencies.map((from) => ({ from, to: n.id })),
+                  ),
+                }}
+                selected={node}
+                select={setNode}
+                save={() => {}}
+              />
               <div className="run-graph">
                 {run.nodes.map((n, i) => (
                   <button
@@ -319,6 +303,17 @@ export default function RunWorkspace({ data, update, route }) {
                 <article className="panel" key={a.id}>
                   <span className="badge">{a.type}</span>
                   <h3>{a.name}</h3>
+                  <p className="muted">
+                    {a.completeness
+                      ? `${a.completeness} · reported by trace source, unverified`
+                      : "Supplied artifact · completeness has not been attested."}
+                  </p>
+                  {a.completeness === "Partial" && (
+                    <p className="notice">
+                      This is a partial result. Review missing work before using
+                      it downstream.
+                    </p>
+                  )}
                   <pre className="product-code">{a.content}</pre>
                   <Button
                     onClick={() =>
@@ -330,6 +325,10 @@ export default function RunWorkspace({ data, update, route }) {
                 </article>
               ))}
             </div>
+          ) : tab === "Controls" ? (
+            <RunControls key={run.id} run={run} />
+          ) : tab === "Replay & plans" ? (
+            <RunReview key={run.id} run={run} data={data} update={update} />
           ) : (
             run.checkpoints.map((c) => (
               <div className="panel wb-row" key={c.id}>
@@ -339,7 +338,9 @@ export default function RunWorkspace({ data, update, route }) {
                     {new Date(c.at).toLocaleString()} · {c.node}
                   </small>
                 </div>
-                <Button disabled>Fork from checkpoint</Button>
+                <Button onClick={() => setTab("Replay & plans")}>
+                  Plan continuation
+                </Button>
               </div>
             ))
           )}

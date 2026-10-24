@@ -215,6 +215,14 @@ export function validateWorkspace(v) {
           text(n.type, 50) &&
           Number.isFinite(n.timeout) &&
           Number.isFinite(n.retries) &&
+          (n.position === undefined ||
+            (object(n.position) &&
+              Number.isFinite(n.position.x) &&
+              Number.isFinite(n.position.y) &&
+              n.position.x >= 0 &&
+              n.position.x <= 100000 &&
+              n.position.y >= 0 &&
+              n.position.y <= 100000)) &&
           ports(n.inputPorts) &&
           ports(n.outputPorts) &&
           (n.subflow === undefined || graph(n.subflow, depth + 1)),

@@ -1,3 +1,6 @@
+import Triggers from "./domains/execution/Triggers";
+import WorkflowCanvas from "./domains/execution/WorkflowCanvas";
+import ConfigurationDiff from "./domains/execution/ConfigurationDiff";
 import React, { useState } from "react";
 import { schema, settingGroups } from "./workbench-schema";
 import {
@@ -336,11 +339,18 @@ export default function Workbench({ route, data, update }) {
               ) : (
                 <>
                   {route === "workflows" && active === "Studio" && (
-                    <Workflow
-                      graph={detail.graph || makeGraph()}
-                      save={(graph) => edit({ graph })}
-                      onRun={start}
-                    />
+                    <>
+                      <Workflow
+                        graph={detail.graph || makeGraph()}
+                        save={(graph) => edit({ graph })}
+                        onRun={start}
+                      />
+                      <Triggers
+                        data={data}
+                        update={update}
+                        workflowId={record.id}
+                      />
+                    </>
                   )}
                   <div className="wb-fields">
                     {definitions.tabs[active].map((label) => (
@@ -519,6 +529,10 @@ function Versions({ detail, restore }) {
   const v = detail.history.find((v) => v.id === compare);
   return (
     <>
+      <ConfigurationDiff
+        current={{ fields: detail.values, graph: detail.graph }}
+        versions={detail.history}
+      />
       <h3>Saved versions</h3>
       <p>
         Restoring changes the local draft. Previously saved versions remain
@@ -789,28 +803,6 @@ function Trials({ items, save }) {
     <section>
       <h3>Manually entered trials</h3>
       <p>No benchmark has run. These records describe results you enter.</p>
-      {node?.type === "Subflow" && node.subflow && depth < 4 && (
-        <details className="exp-panel" open>
-          <summary>Edit nested subflow · {node.name}</summary>
-          <p>
-            Contained configuration, saved with its parent. No execution occurs.
-          </p>
-          <Workflow
-            key={node.id}
-            graph={node.subflow}
-            depth={depth + 1}
-            onRun={onRun}
-            save={(subflow) =>
-              save({
-                ...graph,
-                nodes: graph.nodes.map((n) =>
-                  n.id === node.id ? { ...n, subflow } : n,
-                ),
-              })
-            }
-          />
-        </details>
-      )}
       <form
         className="wb-inline"
         onSubmit={(e) => {
@@ -892,6 +884,14 @@ export function Workflow({ graph, save, onRun, depth = 0 }) {
           {depth > 0 ? "Save from parent workflow" : "Save workflow version"}
         </Btn>
       </div>
+      {mode === "Graph" && (
+        <WorkflowCanvas
+          graph={graph}
+          selected={selected}
+          select={setSelected}
+          save={save}
+        />
+      )}
       <div
         className={"wb-graph " + (mode === "List" ? "list" : "")}
         aria-label="Workflow nodes"
@@ -1193,6 +1193,7 @@ export function Workflow({ graph, save, onRun, depth = 0 }) {
           <Btn
             onClick={() => {
               save({
+                ...graph,
                 nodes: graph.nodes.filter((n) => n.id !== node.id),
                 edges: graph.edges.filter(
                   (e) => e.from !== node.id && e.to !== node.id,

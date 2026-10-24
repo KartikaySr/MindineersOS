@@ -1,3 +1,4 @@
+import type { ExecutionCollections } from "../../domains/execution/model";
 import type { PhaseTwoCollections } from "../../domains/administration/model";
 export interface Entity {
   id: string;
@@ -266,10 +267,16 @@ export type TraceRecord = Entity &
     nodes: (Entity &
       TextFields<"name" | "agent" | "state"> & { dependencies: string[] })[];
     events: (Entity & TextFields<"at" | "level" | "node" | "message">)[];
-    artifacts: (Entity & TextFields<"name" | "type" | "content">)[];
+    artifacts: (Entity &
+      TextFields<"name" | "type" | "content"> & {
+        completeness?: "Partial" | "Complete";
+        node?: string;
+      })[];
     checkpoints: (Entity & TextFields<"name" | "at" | "node">)[];
   };
-export interface ProductCollections extends PhaseTwoCollections {
+export interface ProductCollections
+  extends PhaseTwoCollections,
+    ExecutionCollections {
   documents: DocumentRecord[];
   ledger: LedgerRecord[];
   deliveries: DeliveryRecord[];

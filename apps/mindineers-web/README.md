@@ -104,3 +104,7 @@ Storage failures now stay visible with export/retry actions, even when ordinary 
 ## Phase 2 identity and administration
 
 Account entry now has a typed, service-ready identity journey. Security adds Organization and Effective access tabs plus an acknowledgement-based session interface. Integration inspectors include lifecycle review requests. Usage & billing adds Manage subscription with profile/change-request drafts. All cloud services remain disconnected by default; no grants, revocations, accounts, emails, or purchases are simulated as completed. See [Phase 2 report](PHASE_2_ADMINISTRATION.md).
+
+## Phase 3 multi-agent environment
+
+Workflow Studio adds a visual dependency canvas, configuration comparisons and trigger drafts with supplied history. Runs adds read-only dependency inspection, event replay, checkpoint continuation plans, partial-artifact labels, incident associations and service-ready runtime controls. Strict trace validation protects import and restore boundaries. Execution remains disconnected; local plans and evidence never claim live agent actions. See [Phase 3 report](PHASE_3_EXECUTION.md). Phase 4 requires approval.

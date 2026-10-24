@@ -70,4 +70,8 @@ Typed infrastructure implementation is complete and passes type checking, 58 tes
 
 ## Phase 2 interface delivery
 
-Typed identity challenge/invitation/recovery/session journeys, organization setup drafts, fail-closed permission inspection, session revocation confirmation/acknowledgement UI, provider lifecycle requests and billing management drafts are implemented. All 64 tests, strict typecheck and the production build pass. Browser use was disabled; connected services and interactive acceptance remain unverified. See PHASE_2_ADMINISTRATION.md. Phase 3 awaits permission.
+Typed identity challenge/invitation/recovery/session journeys, organization setup drafts, fail-closed permission inspection, session revocation confirmation/acknowledgement UI, provider lifecycle requests and billing management drafts are implemented. All 64 tests, strict typecheck and the production build pass. Browser use was disabled; connected services and interactive acceptance remain unverified. See PHASE_2_ADMINISTRATION.md. Phase 3 was subsequently approved and implemented as documented below.
+
+## Phase 3 interface delivery
+
+Workflow dependency canvas/layout, snapshot comparisons, trigger configuration/evidence, recorded run graph/replay, checkpoint continuation drafts, partial-artifact labels, runtime command interfaces and incident associations are implemented. Import and persistence use the same strict trace validator. All 71 tests, type checking and the production build pass. Browser acceptance remains unverified because local browser use is disabled; parent-shell JSX migration and performance acceptance remain open. See PHASE_3_EXECUTION.md. Phase 4 awaits permission.

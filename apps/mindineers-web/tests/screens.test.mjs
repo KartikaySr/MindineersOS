@@ -24,6 +24,11 @@ test("product screens render empty and restored data without requiring backend a
  import {LoadingState,ErrorState,SaveFailure,RouteBoundary} from '${src}shared/ui/AsyncState.tsx';
  import {ServiceError} from '${src}shared/services/errors.ts';
  import {Button,Field,Tabs} from '${src}shared/ui/controls.tsx';
+ import WorkflowCanvas from '${src}domains/execution/WorkflowCanvas.tsx';
+ import ConfigurationDiff from '${src}domains/execution/ConfigurationDiff.tsx';
+ import Triggers from '${src}domains/execution/Triggers.tsx';
+ import RunReview from '${src}domains/execution/RunReview.tsx';
+ import RunControls from '${src}domains/execution/RunControls.tsx';
  import Organization from '${src}domains/administration/Organization.tsx';
  import Lifecycle from '${src}domains/administration/Lifecycle.tsx';
  import BillingManagement from '${src}domains/administration/BillingManagement.tsx';
@@ -65,6 +70,11 @@ test("product screens render empty and restored data without requiring backend a
  validateProduct({traces:[exampleRun]});
  const screens=[Finance,Delivery,Operations,Documents,Decisions,Admin,Subscription,Knowledge,Engineering,Creative,Runtime,Runs,Help];
  export const entryResults=[
+ React.createElement(WorkflowCanvas,{graph:{nodes:[{id:'n',name:'Review',type:'Agent',timeout:60,retries:0}],edges:[]},selected:'n',select:()=>{},save:()=>{}}),
+ React.createElement(ConfigurationDiff,{current:{fields:{name:'Changed'}},versions:[{id:'v',at:now,values:{name:'Original'}}]}),
+ React.createElement(Triggers,{data:base,update:()=>{},workflowId:'w'}),
+ React.createElement(RunReview,{run:exampleRun,data:base,update:()=>{}}),
+ React.createElement(RunControls,{run:exampleRun}),
  React.createElement(Organization,{data:base,update:()=>{}}),
  React.createElement(Lifecycle,{data:base,update:()=>{},provider:'github',account:'Work',scopes:[]}),
  React.createElement(BillingManagement,{data:base,update:()=>{}}),
@@ -111,7 +121,7 @@ test("product screens render empty and restored data without requiring backend a
     });
     const { results, entryResults } = await import(pathToFileURL(outfile).href);
     assert.equal(results.length, 26);
-    assert.equal(entryResults.length, 42);
+    assert.equal(entryResults.length, 47);
     for (const html of entryResults) assert.ok(html.length > 20);
     for (const html of results) {
       assert.ok(html.length > 300);

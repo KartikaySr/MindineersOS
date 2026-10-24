@@ -685,3 +685,40 @@
   fill: var(--ink);
   font-size: 12px;
 }
+
+.execution-canvas {
+  overflow: auto;
+  max-height: 600px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  margin: 16px 0;
+}
+.execution-canvas svg {
+  display: block;
+  color: var(--ink);
+}
+.execution-canvas text {
+  fill: var(--ink);
+  font-size: 12px;
+  pointer-events: none;
+}
+.execution-canvas rect {
+  fill: var(--panel);
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.execution-canvas .selected,
+.execution-canvas g[role="button"]:focus rect {
+  stroke: currentColor;
+  stroke-width: 3;
+}
+.execution-canvas g[role="button"] {
+  cursor: pointer;
+}
+.execution-edge {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.65;
+}

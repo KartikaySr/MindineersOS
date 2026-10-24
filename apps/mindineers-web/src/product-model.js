@@ -1,3 +1,5 @@
+import { validateTrace } from "./domains/execution/trace";
+import { executionValidators } from "./domains/execution/model.ts";
 import { phaseTwoValidators } from "./domains/administration/model.ts";
 import { experimentValidators } from "./experiment-model.js";
 import { businessValidators } from "./business-model.js";
@@ -135,6 +137,7 @@ export function validateProduct(value) {
   const comment = (c) =>
     fields(c, ["id", "quote", "text", "at"]) && typeof c.resolved === "boolean";
   const validators = {
+    ...executionValidators,
     ...phaseTwoValidators,
     ...businessValidators,
     ...experimentValidators,
@@ -182,20 +185,14 @@ export function validateProduct(value) {
       rows(i.timeline, (t) =>
         fields(t, ["id", "at", "actor", "state", "note"]),
       ),
-    traces: (t) =>
-      fields(t, ["id", "name", "mode", "status", "startedAt"]) &&
-      rows(
-        t.nodes,
-        (n) =>
-          fields(n, ["id", "name", "agent", "state"]) &&
-          rows(n.dependencies, text),
-        500,
-      ) &&
-      rows(t.events, (e) =>
-        fields(e, ["id", "at", "level", "node", "message"]),
-      ) &&
-      rows(t.artifacts, (a) => fields(a, ["id", "name", "type", "content"])) &&
-      rows(t.checkpoints, (c) => fields(c, ["id", "name", "at", "node"])),
+    traces: (t) => {
+      try {
+        validateTrace(t);
+        return true;
+      } catch {
+        return false;
+      }
+    },
     campaigns: (c) =>
       fields(c, [
         "id",
