@@ -6,7 +6,7 @@ import {
   mergeContacts,
   contactFields,
 } from "./customer-import";
-export default function CustomerTools({ items, update }) {
+export default function CustomerTools({ items, update, data }) {
   const [mode, setMode] = useState(""),
     [text, setText] = useState(""),
     [csv, setCSV] = useState(null),
@@ -20,11 +20,35 @@ export default function CustomerTools({ items, update }) {
     valid = preview.filter((r) => !r.errors.length && !r.duplicate),
     a = items.find((x) => x.id === target),
     b = items.find((x) => x.id === source);
-  const replace = (next) =>
-    update((d) => ({ ...d, records: { ...d.records, customers: next } }));
-  const commit = (next) => {
-    setUndo({ before: items, after: next });
-    replace(next);
+  const deliveries = data?.product?.deliveries || [];
+  const replace = (next, linked) =>
+    update((d) => ({
+      ...d,
+      records: { ...d.records, customers: next },
+      ...(linked ? { product: { ...d.product, deliveries: linked } } : {}),
+    }));
+  const commit = (next, sourceId, targetId) => {
+    const linked = sourceId
+      ? deliveries.map((r) =>
+          r.customerId === sourceId
+            ? {
+                ...r,
+                customerId: targetId,
+                artifacts: r.artifacts.map((a) => ({
+                  ...a,
+                  customerId: targetId,
+                })),
+              }
+            : r,
+        )
+      : deliveries;
+    setUndo({
+      before: items,
+      after: next,
+      beforeLinked: deliveries,
+      afterLinked: linked,
+    });
+    replace(next, linked);
     setMode("");
   };
   const parse = () => {
@@ -69,13 +93,16 @@ export default function CustomerTools({ items, update }) {
         {undo && (
           <Button
             onClick={() => {
-              if (JSON.stringify(items) !== JSON.stringify(undo.after)) {
+              if (
+                JSON.stringify(items) !== JSON.stringify(undo.after) ||
+                JSON.stringify(deliveries) !== JSON.stringify(undo.afterLinked)
+              ) {
                 setMessage(
                   "Contacts changed after this operation. Undo is paused to preserve later edits.",
                 );
                 return;
               }
-              replace(undo.before);
+              replace(undo.before, undo.beforeLinked);
               setUndo(null);
               setMessage("Operation undone.");
             }}
@@ -184,8 +211,9 @@ export default function CustomerTools({ items, update }) {
         <Dialog title="Review contact merge" close={() => setMode("")}>
           <p>
             Keep the target ID and pipeline state. Choose each field, combine
-            activity history, and remove the source contact. Undo is available
-            until another contact edit.
+            activity history, and remove the source contact. Linked delivery
+            customer references move to the target. Undo is available until
+            another contact or delivery edit.
           </p>
           {[
             ["Keep target", target, setTarget],
@@ -234,6 +262,8 @@ export default function CustomerTools({ items, update }) {
                     items
                       .filter((i) => i.id !== b.id)
                       .map((i) => (i.id === a.id ? merged : i)),
+                    b.id,
+                    a.id,
                   );
                   setMessage("Contacts merged. Activity history preserved.");
                 }}

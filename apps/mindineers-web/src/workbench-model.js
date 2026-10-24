@@ -1,3 +1,4 @@
+import { schemaErrors } from "./schema-validation.js";
 export const nodeTypes = [
   "Agent",
   "Tool",
@@ -73,16 +74,11 @@ export function validateGraph(graph, depth = 0) {
         errors.push(`${n.name} / ${error}`);
     }
     for (const key of ["inputSchema", "outputSchema"]) {
-      if (n[key]) {
-        try {
-          const schema = JSON.parse(n[key]);
-          if (!schema || typeof schema !== "object" || Array.isArray(schema))
-            errors.push(`${n.name}: ${key} must be a JSON object.`);
-        } catch {
-          errors.push(`${n.name}: ${key} is not valid JSON.`);
-        }
-      }
+      if (n[key])
+        for (const error of schemaErrors(n[key]))
+          errors.push(`${n.name}: ${key} ${error}`);
     }
+
     if (
       n.type === "Parallel" &&
       n.concurrency !== undefined &&
@@ -182,7 +178,13 @@ export function effectiveSetting(scopes, key) {
 }
 export function validHttpUrl(value) {
   try {
-    return ["http:", "https:"].includes(new URL(value).protocol);
+    const url = new URL(value);
+    return (
+      ["http:", "https:"].includes(url.protocol) &&
+      !url.username &&
+      !url.password &&
+      !/[\u0000-\u001f\u007f]/.test(value)
+    );
   } catch {
     return false;
   }

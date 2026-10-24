@@ -1,3 +1,5 @@
+import AccessReview from "./AccessReview";
+import SecurityIncidents from "./SecurityIncidents";
 import React, { useState } from "react";
 import { Button, Field, Dialog, Tabs, Empty, useCollection } from "./ProductUI";
 import { uid, download } from "./product-model";
@@ -53,11 +55,23 @@ export default function Administration({ data, update }) {
         <span className="badge">Configuration workspace</span>
       </div>
       <Tabs
-        values={["Members", "Roles", "Policies", "Sessions", "Audit"]}
+        values={[
+          "Members",
+          "Roles",
+          "Policies",
+          "Sessions",
+          "Audit",
+          "Incidents",
+          "Access review",
+        ]}
         value={tab}
         onChange={setTab}
       />
-      {tab === "Members" ? (
+      {tab === "Access review" ? (
+        <AccessReview data={data} update={update} roles={roleList} />
+      ) : tab === "Incidents" ? (
+        <SecurityIncidents data={data} update={update} />
+      ) : tab === "Members" ? (
         <>
           <div className="toolbar">
             <input

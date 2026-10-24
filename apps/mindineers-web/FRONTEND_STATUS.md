@@ -25,6 +25,19 @@ Public landing page with interactive previews/use cases/FAQs; light green and lu
 
 CRM now includes CSV field mapping, validation previews, duplicate skips, reviewed contact merge and guarded undo. Review requests now support local delegation/escalation, routing history, snoozing and revision comparison.
 
+## Business, evidence, and security expansion
+
+- Finance/procurement: invoice, expense and purchase-request documents; exact minor-unit totals for USD/EUR/GBP/INR/JPY/KWD; tax assumptions; locked submitted values; revised drafts; evidence-backed status history; statement/PO reference and exact-amount reconciliation.
+- Delivery: customer/project assignment, service targets, sourced requirements, acceptance checklists and evidence, escalation notes, response drafts, internal/shared updates, customer-scoped document previews and export. Customer changes reset sharing and acceptance; exports omit document comments and speaker notes.
+- Operations: procedure/onboarding/obligation/supplier/request/policy checklists, ownership, cadence preferences, completion evidence and repeat-cycle history.
+- Evaluations: locked evaluation context after first trial, baseline/candidate repetitions, evidence references, exclusions with reasons, adjudication notes, error-inclusive pass rates, Wilson intervals and recorded cost/latency/violations.
+- Scenarios: environment/roster/seed/assumption records, intervention timeline, branching and side-by-side comparison. No simulation engine is implied.
+- Improvements: before/after proposals, regression/holdout/compatibility/rollback gates, staged promotion and rollback evidence records. No deployment is performed.
+- Knowledge: SVG evidence map, support/contradiction/related links, contradiction-resolution notes and an accessible relationship list.
+- Documents: selected-range replacement proposals, explicit apply/decline review, stale-revision guards and automatic pre-apply checkpoints.
+- Security: incident response records with evidence gates and timelines; access-review snapshots of proposed roles. These are local records, not authoritative security enforcement.
+- Hardening: draft-07 schema structure checks generated at build-authoring time (no browser eval), schema size/depth limits, unsafe import-key and duplicate-ID rejection, credential-free outbound URLs, per-route error recovery, restrictive production CSP and Permissions-Policy, and removal of remote font requests.
+
 ## Backend-dependent functions with connection boundaries
 
 Authentication/session recovery, organization permissions, agent/model responses, workflow execution, live run state and controls, real tool approvals, provider connections/OAuth, external calendar sync, multi-user presence, billing, telemetry, verified evaluation runs, external publishing, device workers, retention enforcement, secure search/indexing and synchronization.
@@ -35,16 +48,16 @@ These are real frontend gaps, not tasks that can all be solved by merely adding 
 
 - Strict TypeScript conversion; typed transport adapters and generated API contracts once the backend interface is agreed.
 - Cloud organization creation, connected identity challenge/error/session flows, and effective-permission interfaces. Local workspace switching and account-entry availability screens are implemented; these are not working cloud authentication.
-- Full JSON Schema validation, conditional/parallel runtime semantics, trigger history, visual edge routing and configuration diff UI. Named ports, endpoint/type checks, nested subflow editing (four levels), schema syntax and concurrency validation are implemented.
+- Runtime payload validation against schemas, conditional/parallel runtime semantics, trigger history, visual edge routing and configuration diff UI. Draft-07 schema structure and local-reference checks are implemented; formats and schema-to-schema assignability are not fully validated. Named ports, endpoint/type checks, nested subflow editing (four levels), schema syntax and concurrency validation are implemented.
 - Server-connected run DAG, partial artifacts, acknowledged controls, replay, checkpoints and incident correlation.
 - Server-authorized review ownership, timed notifications and field-level revision highlighting. Local delegation, escalation, snooze, before/after comparison and version invalidation are implemented.
-- Rich document suggestions, selected-region proposals and more artifact preview formats. Basic document/sheet/slide editors are implemented.
-- Evidence-map visualization, contradiction linking and knowledge ingestion/sync state. Local source search and memory confirmation/forget are implemented.
+- Rich-text editing, collaborative suggestion attribution and more artifact preview formats. Selected-range proposals and stale-edit protection are implemented.
+- Knowledge ingestion/sync state and connected evidence retrieval. Local evidence mapping, contradiction resolution, search and memory confirmation/forget are implemented.
 - Connected repository tree/CI interfaces and terminal capability boundaries. Local supplied-file diffs/review and creative variant editing/publication drafts are implemented.
-- Delivery portal scope, finance reconciliation and procurement-specific interactions; cross-record reference remapping after CRM merge. CSV import mapping, duplicate skips, field selection and guarded undo are implemented.
-- Advanced simulation/scenario comparisons, statistical evaluation reporting, improvement promotion/rollback controls.
+- Authenticated customer portal delivery, provider reconciliation/import contracts and richer procurement approval routing. Local customer-scoped exports, finance matching, purchase requests, and delivery reference remapping after CRM merge are implemented.
+- Executable scenario environments, independent/blind evaluation adjudication, and connected improvement promotion/rollback acknowledgements. Local comparisons, descriptive evaluation statistics and evidence-gated review records are implemented.
 - Detailed connector/device lifecycle and catalog install/update/revocation. Model/device configuration profiles are implemented; health/resource inspection requires runtime contracts.
-- Connected billing/subscription administration, effective permission/access review and security incident UI. Local role/policy/plan preferences are implemented.
+- Connected billing/subscription administration, authoritative effective permissions and incident telemetry. Local access-review and incident-response interfaces are implemented.
 - Per-entity settings overrides and mandatory-policy conflict resolution; currently one draft per scope level.
 - Collaborative conflict resolution, undo/restore for all actions, offline synchronization, richer loading/error/denied/stale states.
 - Comprehensive mobile/keyboard/screen-reader regression coverage and performance budgets.

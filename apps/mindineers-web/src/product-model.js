@@ -1,3 +1,5 @@
+import { experimentValidators } from "./experiment-model.js";
+import { businessValidators } from "./business-model.js";
 export const uid = () => crypto.randomUUID();
 export function validateApproval(request) {
   if (!request.destination?.trim()) return "A destination is required.";
@@ -132,6 +134,52 @@ export function validateProduct(value) {
   const comment = (c) =>
     fields(c, ["id", "quote", "text", "at"]) && typeof c.resolved === "boolean";
   const validators = {
+    ...businessValidators,
+    ...experimentValidators,
+    accessReviews: (r) =>
+      fields(r, [
+        "id",
+        "memberId",
+        "memberName",
+        "roleName",
+        "decision",
+        "reason",
+        "due",
+        "actor",
+        "at",
+      ]) &&
+      rows(r.permissions, text) &&
+      ["Retain", "Change requested", "Revoke requested"].includes(r.decision),
+    evidenceLinks: (l) =>
+      fields(l, [
+        "id",
+        "from",
+        "to",
+        "relation",
+        "reason",
+        "at",
+        "resolution",
+      ]) &&
+      ["Supports", "Contradicts", "Related"].includes(l.relation) &&
+      typeof l.resolved === "boolean",
+    incidents: (i) =>
+      fields(i, [
+        "id",
+        "name",
+        "severity",
+        "state",
+        "owner",
+        "detectedAt",
+        "scope",
+        "evidence",
+        "containment",
+        "recovery",
+        "rootCause",
+      ]) &&
+      ["Open", "Investigating", "Contained", "Resolved"].includes(i.state) &&
+      rows(i.timeline, (t) =>
+        fields(t, ["id", "at", "actor", "state", "note"]),
+      ),
     traces: (t) =>
       fields(t, ["id", "name", "mode", "status", "startedAt"]) &&
       rows(
@@ -207,7 +255,26 @@ export function validateProduct(value) {
           grid(v.rows) &&
           rows(v.slides, slide),
       ) &&
-      (d.kind !== "Presentation" || d.slides.length > 0),
+      (d.kind !== "Presentation" || d.slides.length > 0) &&
+      (d.proposals === undefined ||
+        rows(
+          d.proposals,
+          (p) =>
+            fields(p, [
+              "id",
+              "baseBody",
+              "replacement",
+              "reason",
+              "state",
+              "at",
+            ]) &&
+            ["Pending", "Applied", "Declined"].includes(p.state) &&
+            Number.isInteger(p.start) &&
+            Number.isInteger(p.end) &&
+            p.start >= 0 &&
+            p.end > p.start &&
+            p.end <= p.baseBody.length,
+        )),
     decisions: (d) =>
       fields(d, [
         "id",
@@ -318,7 +385,12 @@ export function validateProduct(value) {
   };
   if (!object(value)) throw new Error("Invalid product workspace");
   for (const [key, items] of Object.entries(value)) {
-    if (!validators[key] || !rows(items, validators[key]))
+    if (
+      !Object.hasOwn(validators, key) ||
+      !rows(items, validators[key]) ||
+      items.some((i) => !i.id || i.id.length > 120) ||
+      new Set(items.map((i) => i.id)).size !== items.length
+    )
       throw new Error("Invalid " + key + " collection");
   }
   return value;

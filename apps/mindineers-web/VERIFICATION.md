@@ -1,6 +1,6 @@
 # Frontend verification — 24 October 2026
 
-39 automated tests pass, including dashboard priorities, Core navigation invariants, profile/backup validation, CRM CSV/mapping/merge, review routing/expiry, named workflow ports and nested graph/depth validation, plus existing workflow, storage, approval and spreadsheet checks. Server rendering covers empty/populated product workspaces and 12 entry/discovery/support surfaces.
+51 automated tests pass, including dashboard priorities, Core navigation invariants, profile/backup validation, CRM CSV/mapping/merge, review routing/expiry, named workflow ports and nested graph/depth validation, plus existing workflow, storage, approval and spreadsheet checks. Server rendering covers empty/populated product workspaces and 25 additional entry/discovery/business/security surfaces.
 
 The production build succeeds with the available Node 22.23.2; the app targets Node 24 (previous revision also built on Node 24). Main product modules now load on demand. The optional Three.js office still produces a large-chunk warning. No hosted Vercel deployment has been verified.
 
@@ -21,3 +21,18 @@ A Core effect returned a non-cleanup value and crashed on a second response; fix
 Browser access became disabled later in the session. Final regression after lazy loading, CRM import/merge UI, review routing UI, nested workflow editor, avatar upload, account form submission, keyboard-only and screen-reader coverage still need browser acceptance testing. Pure logic and server rendering tests do not substitute for these checks.
 
 Authentication, OAuth, live execution, cloud collaboration, database persistence and billing remain outside this frontend implementation.
+
+## Business/security expansion acceptance
+
+Automated cases now also cover exact currency arithmetic, reconciliation transitions/evidence, customer export scoping, evaluation exclusions and intervals, promotion gates, stale document suggestions, imported-data key/depth limits, duplicate product IDs, credential-bearing URL rejection, and draft-07 schema structure/reference/complexity validation.
+
+Browser access was restored for this expansion. Against the production build with deployment CSP headers on port 5174, in the isolated “Frontend acceptance · 24 Oct” workspace:
+
+- Created an invoice with three units at $0.10 and 7.25% tax; verified $0.30 subtotal, $0.02 tax and $0.32 total.
+- Recorded submission evidence and verified amount/document fields became disabled.
+- Created a document, selected its content, saved and applied a replacement suggestion; verified the replacement and automatic checkpoint.
+- Created an incident record and verified missing owner/evidence/timeline fields block status updates.
+- Inspected mobile incident layout at 390 × 844 with no horizontal overflow.
+- Captured browser error logs after these flows: no errors recorded.
+
+This is focused acceptance, not comprehensive end-to-end coverage. Full financial reconciliation, all delivery-sharing permutations, evaluation forms, evidence-map interactions, screen readers and all device breakpoints still need browser regression. The latest npm dependency installation reported zero known vulnerabilities; this is not a security certification.

@@ -4,6 +4,10 @@ import PersonalDashboard from "./PersonalDashboard";
 import { CoreAssistant, GuidedTour } from "./WorkspaceGuide";
 const HelpCenter = lazy(() => import("./HelpCenter"));
 const RunWorkspace = lazy(() => import("./RunWorkspace"));
+const ExperimentWorkspace = lazy(() => import("./ExperimentWorkspace"));
+const FinanceWorkspace = lazy(() => import("./FinanceWorkspace"));
+const DeliveryWorkspace = lazy(() => import("./DeliveryWorkspace"));
+const OperationsWorkspace = lazy(() => import("./OperationsWorkspace"));
 const CreativeStudio = lazy(() => import("./CreativeStudio"));
 const RuntimeSettings = lazy(() => import("./RuntimeSettings"));
 const KnowledgeHub = lazy(() => import("./KnowledgeHub"));
@@ -125,18 +129,9 @@ function App() {
   const [assistant, setAssistant] = useState(null),
     [tourOpen, setTourOpen] = useState(false);
   const [workbenchMode, setWorkbenchMode] = useState(() =>
-    [
-      "workflows",
-      "research",
-      "teams",
-      "simulation",
-      "evaluations",
-      "improvement",
-      "finance",
-      "operations",
-      "delivery",
-      "tools",
-    ].includes(location.hash.slice(1)),
+    ["workflows", "research", "teams", "tools"].includes(
+      location.hash.slice(1),
+    ),
   );
   const [workspaceIndex, setWorkspaceIndex] = useState(initialWorkspace.index),
     [workspacePicker, setWorkspacePicker] = useState(false),
@@ -223,18 +218,9 @@ function App() {
       setFilter("All");
       setView("Grid");
       setWorkbenchMode(
-        [
-          "workflows",
-          "research",
-          "teams",
-          "simulation",
-          "evaluations",
-          "improvement",
-          "finance",
-          "operations",
-          "delivery",
-          "tools",
-        ].includes(location.hash.slice(1)),
+        ["workflows", "research", "teams", "tools"].includes(
+          location.hash.slice(1),
+        ),
       );
       window.scrollTo({ top: 0, behavior: "instant" });
     };
@@ -1831,6 +1817,19 @@ function App() {
       <HelpCenter data={data} />
     ) : ["runs", "observability"].includes(route) ? (
       <RunWorkspace data={data} update={update} route={route} />
+    ) : ["simulation", "evaluations", "improvement"].includes(route) ? (
+      <ExperimentWorkspace
+        key={route}
+        data={data}
+        update={update}
+        route={route}
+      />
+    ) : route === "finance" ? (
+      <FinanceWorkspace data={data} update={update} />
+    ) : route === "delivery" ? (
+      <DeliveryWorkspace data={data} update={update} />
+    ) : route === "operations" ? (
+      <OperationsWorkspace data={data} update={update} />
     ) : route === "creative" ? (
       <CreativeStudio data={data} update={update} />
     ) : route === "models" ? (
@@ -2260,19 +2259,26 @@ function App() {
               </button>
             </div>
           )}
-          {workbenchMode ? (
-            <Workbench key={route} route={route} data={data} update={update} />
-          ) : (
-            <Suspense
-              fallback={
-                <div className="notice" role="status">
-                  Opening your workspace…
-                </div>
-              }
-            >
-              {page}
-            </Suspense>
-          )}
+          <WorkspaceBoundary key={workspaceIndex.active + ":" + route}>
+            {workbenchMode ? (
+              <Workbench
+                key={route}
+                route={route}
+                data={data}
+                update={update}
+              />
+            ) : (
+              <Suspense
+                fallback={
+                  <div className="notice" role="status">
+                    Opening your workspace…
+                  </div>
+                }
+              >
+                {page}
+              </Suspense>
+            )}
+          </WorkspaceBoundary>
           <footer className="footer">
             <span>Made for a mind like yours.</span>
             <span>MindineersOS · Your workspace</span>

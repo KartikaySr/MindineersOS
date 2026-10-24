@@ -86,3 +86,11 @@ The code currently uses JavaScript/JSX. A strict TypeScript migration and broade
 - `tests/`: invariant and backup validation tests.
 
 See `THIRD_PARTY_NOTICES.md` before redistributing imported resources commercially. Framework references are not running framework integrations.
+
+## Business and security workspaces
+
+Finance now supports invoices, expenses, procurement requests and documented reconciliation. Delivery provides customer-scoped previews, acceptance and progress updates. Operations adds repeatable checklists. Evaluations, scenarios and improvement reviews have dedicated interfaces for comparison and evidence. Knowledge includes an evidence map; documents support selected-text suggestions with stale-edit protection. Security includes incident response and access-review records.
+
+These records remain local until the backend is connected. Status labels never imply payments, publishing, deployment, access revocation or agent execution occurred.
+
+Production deployment includes a Content Security Policy without inline scripts or eval, frame restrictions and a restrictive Permissions Policy. The local production preview applies the same headers. Schema checks are pre-generated with `npm run generate:schema`; regenerate and commit `src/generated/schema-meta.js` when changing the validator. The frontend validates backup structure, rejects unsafe keys/duplicate product IDs, and bounds schema complexity. See [SECURITY_FRONTEND.md](SECURITY_FRONTEND.md) for security boundaries and remaining acceptance work.

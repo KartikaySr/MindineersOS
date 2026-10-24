@@ -1,3 +1,4 @@
+import EvidenceMap from "./EvidenceMap";
 import React, { useState } from "react";
 import { Button, Field, Dialog, Tabs, Empty, useCollection } from "./ProductUI";
 import { uid, download } from "./product-model";
@@ -54,7 +55,7 @@ export default function KnowledgeHub({ data, update }) {
         </Button>
       </div>
       <Tabs
-        values={["Sources", "Search", "Memory"]}
+        values={["Sources", "Search", "Memory", "Evidence map"]}
         value={tab}
         onChange={setTab}
       />
@@ -65,7 +66,9 @@ export default function KnowledgeHub({ data, update }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-      {tab === "Memory" ? (
+      {tab === "Evidence map" ? (
+        <EvidenceMap data={data} update={update} />
+      ) : tab === "Memory" ? (
         <div className="product-cards">
           {memories
             .filter(

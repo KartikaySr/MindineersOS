@@ -1,3 +1,4 @@
+import { validateDataTree } from "./input-safety.js";
 import { validateExperience } from "./experience-model.js";
 import { validateProduct } from "./product-model.js";
 const object = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -6,6 +7,7 @@ function rows(value, check) {
   return Array.isArray(value) && value.length <= 10000 && value.every(check);
 }
 export function validateWorkspace(v) {
+  validateDataTree(v);
   if (!object(v) || !object(v.settings) || !object(v.records))
     throw new Error("Invalid workspace structure");
   if (

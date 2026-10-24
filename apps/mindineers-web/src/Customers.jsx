@@ -142,7 +142,7 @@ export default function Customers({ data, update }) {
           </button>
         </div>
       </div>
-      <CustomerTools items={items} update={update} />
+      <CustomerTools items={items} data={data} update={update} />
       <div className="mission-filters">
         <input
           aria-label="Search customers"

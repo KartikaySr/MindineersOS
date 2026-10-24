@@ -21,6 +21,14 @@ test("product screens render empty and restored data without requiring backend a
  import Creative from '${src}CreativeStudio.jsx';
  import Runtime from '${src}RuntimeSettings.jsx';
  import Runs,{exampleRun,validateTrace} from '${src}RunWorkspace.jsx';
+ import AccessReview from '${src}AccessReview.jsx';
+ import EvidenceMap from '${src}EvidenceMap.jsx';
+ import Incidents,{newIncident} from '${src}SecurityIncidents.jsx';
+ import Suggestions from '${src}DocumentSuggestions.jsx';
+ import Experiments,{newScenario,newEvaluation,newImprovement} from '${src}ExperimentWorkspace.jsx';
+ import Finance,{newLedger} from '${src}FinanceWorkspace.jsx';
+ import Delivery,{newDelivery} from '${src}DeliveryWorkspace.jsx';
+ import Operations,{newProcedure} from '${src}OperationsWorkspace.jsx';
  import Help from '${src}HelpCenter.jsx';
  import Welcome from '${src}Welcome.jsx';
  import {AccountEntry,ProfileExperience} from '${src}AccountExperience.jsx';
@@ -33,6 +41,7 @@ test("product screens render empty and restored data without requiring backend a
  const now=new Date().toISOString();
  const base={settings:{name:'Test',budget:50},projects:[],agents:[],records:{documents:[],missions:[]},product:{}};
  const populated={...base,product:{
+ incidents:[newIncident()],evaluations:[newEvaluation()],scenarios:[newScenario()],improvements:[newImprovement()],ledger:[newLedger()],deliveries:[newDelivery()],procedures:[newProcedure()],
  documents:[{id:'d',name:'Doc',kind:'Document',body:'# Hello',rows:[],slides:[],comments:[],versions:[],updatedAt:now}],
  decisions:[{id:'r',name:'Request',destination:'Account',payload:'Text',scopes:[],effects:'Draft',rollback:'None',expiresAt:'2099-01-01T00:00',version:1,state:'Pending',mode:'Local review',previous:[]}],
  members:[{id:'m',name:'Member',email:'member@example.org',role:'member',state:'Invitation draft'}],roles:[],policies:[],subscription:[],
@@ -45,8 +54,11 @@ test("product screens render empty and restored data without requiring backend a
  validateProduct(populated.product);
  validateTrace(exampleRun);
  validateProduct({traces:[exampleRun]});
- const screens=[Documents,Decisions,Admin,Subscription,Knowledge,Engineering,Creative,Runtime,Runs,Help];
+ const screens=[Finance,Delivery,Operations,Documents,Decisions,Admin,Subscription,Knowledge,Engineering,Creative,Runtime,Runs,Help];
  export const entryResults=[
+ ...[base,populated].flatMap(data=>[React.createElement(AccessReview,{data,update:()=>{},roles:[]}),React.createElement(EvidenceMap,{data,update:()=>{}}),React.createElement(Incidents,{data,update:()=>{}})]),
+ React.createElement(Suggestions,{doc:populated.product.documents[0],patch:()=>{}}),
+ ...[base,populated].flatMap(data=>["simulation","evaluations","improvement"].map(route=>React.createElement(Experiments,{data,route,update:()=>{}}))),
  React.createElement(CustomerTools,{items:[],update:()=>{}}),
  React.createElement(ReviewRouting,{request:populated.product.decisions[0],reviewers:[],actor:"Test",save:()=>{}}),
  React.createElement(Welcome,{theme:'Light',toggle:()=>{}}),
@@ -76,8 +88,8 @@ test("product screens render empty and restored data without requiring backend a
       logLevel: "silent",
     });
     const { results, entryResults } = await import(pathToFileURL(outfile).href);
-    assert.equal(results.length, 20);
-    assert.equal(entryResults.length, 12);
+    assert.equal(results.length, 26);
+    assert.equal(entryResults.length, 25);
     for (const html of entryResults) assert.ok(html.length > 100);
     for (const html of results) {
       assert.ok(html.length > 300);

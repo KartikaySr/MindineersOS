@@ -1,5 +1,6 @@
+import DocumentSuggestions from "./DocumentSuggestions";
 import React, { useState, useRef } from "react";
-import { Button, Field, Tabs, Empty, useCollection } from "./ProductUI";
+import { Button, Field, Tabs, Empty, Dialog, useCollection } from "./ProductUI";
 import { uid, download, cellValue } from "./product-model";
 export default function DocumentsStudio({ data, update }) {
   const [docs, setDocs] = useCollection(data, update, "documents"),
@@ -139,11 +140,19 @@ export default function DocumentsStudio({ data, update }) {
               </div>
             </div>
             <Tabs
-              values={["Write", "Preview", "Comments", "Versions"]}
+              values={[
+                "Write",
+                "Preview",
+                "Comments",
+                ...(doc.kind === "Document" ? ["Suggestions"] : []),
+                "Versions",
+              ]}
               value={mode}
               onChange={setMode}
             />
-            {mode === "Comments" ? (
+            {mode === "Suggestions" ? (
+              <DocumentSuggestions doc={doc} patch={patch} />
+            ) : mode === "Comments" ? (
               <Comments doc={doc} patch={patch} />
             ) : mode === "Versions" ? (
               <Versions doc={doc} patch={patch} />
@@ -170,6 +179,9 @@ export default function DocumentsStudio({ data, update }) {
 }
 function Writer({ doc, patch, preview }) {
   const ref = useRef();
+  const [selection, setSelection] = useState(null),
+    [replacement, setReplacement] = useState(""),
+    [reason, setReason] = useState("");
   const wrap = (before, after = "") => {
     const el = ref.current,
       start = el.selectionStart,
@@ -203,6 +215,24 @@ function Writer({ doc, patch, preview }) {
     <>
       <div className="document-tools">
         <Button onClick={() => wrap("# ")}>Heading</Button>
+        <Button
+          onClick={() => {
+            const el = ref.current;
+            if (el.selectionEnd > el.selectionStart) {
+              setSelection({
+                start: el.selectionStart,
+                end: el.selectionEnd,
+                baseBody: doc.body,
+              });
+              setReplacement(
+                doc.body.slice(el.selectionStart, el.selectionEnd),
+              );
+              setReason("");
+            }
+          }}
+        >
+          Suggest replacement
+        </Button>
         <Button onClick={() => wrap("## ")}>Subheading</Button>
         <Button onClick={() => wrap("- ")}>List</Button>
         <Button onClick={() => wrap("**", "**")}>Bold markup</Button>
@@ -228,6 +258,45 @@ function Writer({ doc, patch, preview }) {
           Comment on selection
         </Button>
       </div>
+      {selection && (
+        <Dialog title="Suggest a replacement" close={() => setSelection(null)}>
+          <blockquote>
+            {selection.baseBody.slice(selection.start, selection.end)}
+          </blockquote>
+          <Field
+            label="Replacement text (empty removes selection)"
+            type="textarea"
+            value={replacement}
+            onChange={setReplacement}
+          />
+          <Field
+            label="Reason for the change"
+            value={reason}
+            onChange={setReason}
+          />
+          <Button
+            disabled={!reason.trim()}
+            onClick={() => {
+              patch({
+                proposals: [
+                  ...(doc.proposals || []),
+                  {
+                    id: uid(),
+                    ...selection,
+                    replacement,
+                    reason,
+                    state: "Pending",
+                    at: new Date().toISOString(),
+                  },
+                ],
+              });
+              setSelection(null);
+            }}
+          >
+            Save suggestion for review
+          </Button>
+        </Dialog>
+      )}
       <textarea
         ref={ref}
         className="document-writer"
