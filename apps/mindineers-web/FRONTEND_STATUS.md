@@ -46,7 +46,7 @@ Authentication/session recovery, organization permissions, agent/model responses
 
 These are real frontend gaps, not tasks that can all be solved by merely adding a backend:
 
-- Strict TypeScript conversion; typed transport adapters and generated API contracts once the backend interface is agreed.
+- Finish strict TypeScript conversion of legacy domain JSX and runtime validators; generate API contracts once the backend interface is agreed. Phase 1 adds a strict typed foundation, workspace contracts, repository/transport adapters, routing and shared UI. See PHASE_1_FOUNDATION.md for the explicit migration boundary.
 - Cloud organization creation, connected identity challenge/error/session flows, and effective-permission interfaces. Local workspace switching and account-entry availability screens are implemented; these are not working cloud authentication.
 - Runtime payload validation against schemas, conditional/parallel runtime semantics, trigger history, visual edge routing and configuration diff UI. Draft-07 schema structure and local-reference checks are implemented; formats and schema-to-schema assignability are not fully validated. Named ports, endpoint/type checks, nested subflow editing (four levels), schema syntax and concurrency validation are implemented.
 - Server-connected run DAG, partial artifacts, acknowledged controls, replay, checkpoints and incident correlation.
@@ -63,3 +63,7 @@ These are real frontend gaps, not tasks that can all be solved by merely adding 
 - Comprehensive mobile/keyboard/screen-reader regression coverage and performance budgets.
 
 No claim of complete full-scope or production readiness should be made until these remaining frontend requirements are implemented and verified. Current mock/example content is presentation data, not evidence of executed agents or live integrations.
+
+## Phase 1 verification
+
+Typed infrastructure implementation is complete and passes type checking, 58 tests and the production build. New browser acceptance is blocked by disabled local browser use; the full-domain migration remains scheduled across subsequent phases. Phase 2 has not started and requires approval.

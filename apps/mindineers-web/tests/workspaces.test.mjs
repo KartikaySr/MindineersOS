@@ -57,6 +57,8 @@ test("corrupt saved data is preserved for recovery instead of returning a blank 
 });
 test("workspace index rejects dangling active workspace", () => {
   const s = storage();
-  writeIndex(s, { active: "missing", items: [{ id: "a", name: "A" }] });
+  const invalid = { active: "missing", items: [{ id: "a", name: "A" }] };
+  assert.throws(() => writeIndex(s, invalid), /index/);
+  s.setItem("mindineers.workspaces.v2", JSON.stringify(invalid));
   assert.throws(() => readIndex(s), /index/);
 });

@@ -36,3 +36,9 @@ Browser access was restored for this expansion. Against the production build wit
 - Captured browser error logs after these flows: no errors recorded.
 
 This is focused acceptance, not comprehensive end-to-end coverage. Full financial reconciliation, all delivery-sharing permutations, evaluation forms, evidence-map interactions, screen readers and all device breakpoints still need browser regression. The latest npm dependency installation reported zero known vulnerabilities; this is not a security certification.
+
+## Phase 1 foundation — 24 October
+
+`npm run verify` passes: strict TypeScript checking, 58 automated tests, and production build. Type checking covers the new app/shared TypeScript modules; legacy JSX is not yet checked. Transport tests use injected fetch responses and never contact a backend. Existing recovery tests were strengthened to require invalid indexes to fail before writing. Server-render coverage includes eight shared-control/recovery cases.
+
+Browser regression was attempted again but local browser use was disabled in Work settings. Earlier browser results above belong to the preceding revision. Phase 1 shared-control, routing and file-preview changes still need interactive regression when browser access is restored.

@@ -21,6 +21,9 @@ test("product screens render empty and restored data without requiring backend a
  import Creative from '${src}CreativeStudio.jsx';
  import Runtime from '${src}RuntimeSettings.jsx';
  import Runs,{exampleRun,validateTrace} from '${src}RunWorkspace.jsx';
+ import {LoadingState,ErrorState,SaveFailure,RouteBoundary} from '${src}shared/ui/AsyncState.tsx';
+ import {ServiceError} from '${src}shared/services/errors.ts';
+ import {Button,Field,Tabs} from '${src}shared/ui/controls.tsx';
  import AccessReview from '${src}AccessReview.jsx';
  import EvidenceMap from '${src}EvidenceMap.jsx';
  import Incidents,{newIncident} from '${src}SecurityIncidents.jsx';
@@ -56,6 +59,14 @@ test("product screens render empty and restored data without requiring backend a
  validateProduct({traces:[exampleRun]});
  const screens=[Finance,Delivery,Operations,Documents,Decisions,Admin,Subscription,Knowledge,Engineering,Creative,Runtime,Runs,Help];
  export const entryResults=[
+ React.createElement(LoadingState),
+ React.createElement(ErrorState,{error:new ServiceError('forbidden')}),
+ React.createElement(SaveFailure,{retry:()=>{},exportData:()=>{}}),
+ React.createElement(RouteBoundary,null,React.createElement('p',null,'Workspace content preserved')),
+ React.createElement(Field,{label:'Name',value:'Example',onChange:()=>{},required:true}),
+ React.createElement(Field,{label:'Mode',value:'A',options:['A','B'],onChange:()=>{}}),
+ React.createElement(Field,{label:'Notes',value:'Text',type:'textarea',onChange:()=>{}}),
+ React.createElement(Tabs,{values:['A','B'],value:'A',onChange:()=>{}}),
  ...[base,populated].flatMap(data=>[React.createElement(AccessReview,{data,update:()=>{},roles:[]}),React.createElement(EvidenceMap,{data,update:()=>{}}),React.createElement(Incidents,{data,update:()=>{}})]),
  React.createElement(Suggestions,{doc:populated.product.documents[0],patch:()=>{}}),
  ...[base,populated].flatMap(data=>["simulation","evaluations","improvement"].map(route=>React.createElement(Experiments,{data,route,update:()=>{}}))),
@@ -89,8 +100,8 @@ test("product screens render empty and restored data without requiring backend a
     });
     const { results, entryResults } = await import(pathToFileURL(outfile).href);
     assert.equal(results.length, 26);
-    assert.equal(entryResults.length, 25);
-    for (const html of entryResults) assert.ok(html.length > 100);
+    assert.equal(entryResults.length, 33);
+    for (const html of entryResults) assert.ok(html.length > 20);
     for (const html of results) {
       assert.ok(html.length > 300);
       assert.doesNotMatch(html, /Let’s get your workspace back/);

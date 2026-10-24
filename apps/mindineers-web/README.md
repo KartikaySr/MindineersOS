@@ -94,3 +94,9 @@ Finance now supports invoices, expenses, procurement requests and documented rec
 These records remain local until the backend is connected. Status labels never imply payments, publishing, deployment, access revocation or agent execution occurred.
 
 Production deployment includes a Content Security Policy without inline scripts or eval, frame restrictions and a restrictive Permissions Policy. The local production preview applies the same headers. Schema checks are pre-generated with `npm run generate:schema`; regenerate and commit `src/generated/schema-meta.js` when changing the validator. The frontend validates backup structure, rejects unsafe keys/duplicate product IDs, and bounds schema complexity. See [SECURITY_FRONTEND.md](SECURITY_FRONTEND.md) for security boundaries and remaining acceptance work.
+
+## Phase 1 foundation
+
+The typed foundation lives in `src/app` (bootstrap/routing) and `src/shared` (contracts, repository/transport adapters and UI controls). Run `npm run verify` for strict type checking, tests and the production build. Existing domain JSX is still supported through compatibility exports; it is not yet fully type-checked. See [Phase 1 delivery](PHASE_1_FOUNDATION.md) and the [approval-gated phase plan](FRONTEND_PHASES.md).
+
+Storage failures now stay visible with export/retry actions, even when ordinary notifications are disabled. Local backup and workspace key formats remain compatible. The optional typed HTTP transport is disconnected by default and does not start backend services.

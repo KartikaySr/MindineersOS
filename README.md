@@ -9,6 +9,8 @@ npm run dev --prefix apps/mindineers-web
 
 The latest frontend expansion adds finance/procurement, scoped delivery, operational checklists, scenario comparisons, evaluation reports, improvement reviews, evidence mapping, reviewed document edits, and security incident/access-review records. Deployment hardening includes restrictive CSP headers and validated backup imports. See [frontend security](apps/mindineers-web/SECURITY_FRONTEND.md).
 
+Phase 1 adds a strict TypeScript foundation, typed local storage and service boundaries, centralized routes, shared controls, and persistent unsaved-work recovery. See the [Phase 1 report](apps/mindineers-web/PHASE_1_FOUNDATION.md). Later phases require explicit approval.
+
 The frontend supports local editing and optional example content. AI execution, authentication, integrations and cloud storage are not connected. This is not yet the complete full-scope product: see the [frontend status](apps/mindineers-web/FRONTEND_STATUS.md) and [deployment guide](apps/mindineers-web/README.md). The existing framework documentation below describes the inherited repository, not features verified in the new frontend.
 
 ---

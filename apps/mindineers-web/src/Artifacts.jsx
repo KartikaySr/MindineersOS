@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
-import { saveFile, getFile, downloadFile } from "./files";
+import ArtifactPreview from "./shared/ui/ArtifactPreview";
+import React, { useState, useRef } from "react";
+import { saveFile, downloadFile } from "./files";
 const size = (n) =>
   n >= 1048576
     ? (n / 1048576).toFixed(1) + " MB"
@@ -269,59 +270,5 @@ export default function Artifacts({ data, update }) {
         )}
       </div>
     </section>
-  );
-}
-function ArtifactPreview({ item }) {
-  const [preview, setPreview] = useState({ state: "loading" });
-  useEffect(() => {
-    let cancelled = false,
-      url;
-    setPreview({ state: "loading" });
-    getFile(item.id)
-      .then(async (file) => {
-        const raster = [
-            "image/png",
-            "image/jpeg",
-            "image/webp",
-            "image/gif",
-            "image/avif",
-          ].includes(file.type),
-          textual =
-            /^text\/(plain|markdown|csv)$/.test(file.type) ||
-            file.type === "application/json";
-        if (raster) {
-          url = URL.createObjectURL(file);
-          if (!cancelled) setPreview({ state: "image", url });
-          else URL.revokeObjectURL(url);
-        } else if (textual && file.size < 1024 * 1024) {
-          const text = await file.text();
-          if (!cancelled)
-            setPreview({ state: "text", text: text.slice(0, 30000) });
-        } else if (!cancelled) setPreview({ state: "download" });
-      })
-      .catch((e) => {
-        if (!cancelled) setPreview({ state: "error", message: e.message });
-      });
-    return () => {
-      cancelled = true;
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [item.id]);
-  return (
-    <div className="artifact-preview">
-      {preview.state === "image" ? (
-        <img src={preview.url} alt={item.name} />
-      ) : preview.state === "text" ? (
-        <pre>{preview.text}</pre>
-      ) : (
-        <p>
-          {preview.state === "loading"
-            ? "Loading preview…"
-            : preview.state === "error"
-              ? preview.message
-              : "Download the original to view this file type. Embedded active documents are not executed."}
-        </p>
-      )}
-    </div>
   );
 }

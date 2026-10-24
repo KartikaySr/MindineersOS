@@ -1,3 +1,10 @@
+import { useRoute } from "./app/useRoute";
+import { defaultWorkbench, navigationTitle } from "./app/routes";
+import {
+  RouteBoundary,
+  LoadingState,
+  SaveFailure,
+} from "./shared/ui/AsyncState";
 import Welcome, { ThemeToggle } from "./Welcome";
 import { AccountEntry, ProfileExperience } from "./AccountExperience";
 import PersonalDashboard from "./PersonalDashboard";
@@ -46,7 +53,6 @@ import {
   saveWorkspace,
   workspaceKey,
 } from "./workspaces";
-import { createRoot } from "react-dom/client";
 import { resources } from "./resources";
 import { Icons } from "./icons";
 import { modules, initialAgents, seedProjects, seeds, domains } from "./data";
@@ -115,7 +121,7 @@ function Avatar({ agent, size = "" }) {
     </span>
   );
 }
-function App() {
+export default function App() {
   const [online, setOnline] = useState(navigator.onLine);
   useEffect(() => {
     const change = () => setOnline(navigator.onLine);
@@ -128,18 +134,24 @@ function App() {
   }, []);
   const [assistant, setAssistant] = useState(null),
     [tourOpen, setTourOpen] = useState(false);
-  const [workbenchMode, setWorkbenchMode] = useState(() =>
-    ["workflows", "research", "teams", "tools"].includes(
-      location.hash.slice(1),
-    ),
-  );
+  const route = useRoute();
+  const [modeSelection, setModeSelection] = useState({
+    route,
+    value: defaultWorkbench(route),
+  });
+  const workbenchMode =
+    modeSelection.route === route
+      ? modeSelection.value
+      : defaultWorkbench(route);
+  const setWorkbenchMode = (value) => setModeSelection({ route, value });
+  const [saveFailed, setSaveFailed] = useState(false),
+    [saveAttempt, setSaveAttempt] = useState(0);
   const [workspaceIndex, setWorkspaceIndex] = useState(initialWorkspace.index),
     [workspacePicker, setWorkspacePicker] = useState(false),
     [recovery, setRecovery] = useState(initialWorkspace.error),
     [recoveryRaw, setRecoveryRaw] = useState(initialWorkspace.raw),
     [storageConflict, setStorageConflict] = useState(null);
   const [data, setData] = useState(() => initialWorkspace.data || fresh()),
-    [route, setRoute] = useState(location.hash.slice(1) || "welcome"),
     [query, setQuery] = useState(""),
     [searchOpen, setSearchOpen] = useState(false),
     [modal, setModal] = useState(null),
@@ -205,28 +217,17 @@ function App() {
     if (recovery || storageConflict) return;
     try {
       saveWorkspace(localStorage, workspaceIndex.active, data);
+      setSaveFailed(false);
     } catch {
-      setToast(
-        "Changes could not be saved. Export your workspace to keep them.",
-      );
+      setSaveFailed(true);
     }
-  }, [data, workspaceIndex.active, recovery, storageConflict]);
+  }, [data, workspaceIndex.active, recovery, storageConflict, saveAttempt]);
   useEffect(() => {
-    const fn = () => {
-      setRoute(location.hash.slice(1) || "welcome");
-      setMobile(false);
-      setFilter("All");
-      setView("Grid");
-      setWorkbenchMode(
-        ["workflows", "research", "teams", "tools"].includes(
-          location.hash.slice(1),
-        ),
-      );
-      window.scrollTo({ top: 0, behavior: "instant" });
-    };
-    window.addEventListener("hashchange", fn);
-    return () => window.removeEventListener("hashchange", fn);
-  }, []);
+    setMobile(false);
+    setFilter("All");
+    setView("Grid");
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [route]);
   useEffect(() => {
     const fn = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -257,7 +258,7 @@ function App() {
   useEffect(() => {
     setAssistant(null);
     setTourOpen(false);
-    document.title = `MindineersOS — ${route === "welcome" ? "A world of work. One clear mind." : { "sign-in": "Sign in", "sign-up": "Create account", recovery: "Recover access", join: "Join a team" }[route] || current[1]}`;
+    document.title = navigationTitle(route, current[1]);
   }, [route, workspaceIndex.active]);
   const update = (fn) =>
     setData((d) => (typeof fn === "function" ? fn(d) : { ...d, ...fn }));
@@ -2200,6 +2201,12 @@ function App() {
           tabIndex={-1}
           className={route === "chat" ? "main chat-main" : "main"}
         >
+          {saveFailed && (
+            <SaveFailure
+              retry={() => setSaveAttempt((n) => n + 1)}
+              exportData={exportData}
+            />
+          )}
           {!online && (
             <div className="notice" role="status">
               You are offline. Saved local work remains available. Cloud
@@ -2259,7 +2266,7 @@ function App() {
               </button>
             </div>
           )}
-          <WorkspaceBoundary key={workspaceIndex.active + ":" + route}>
+          <RouteBoundary key={workspaceIndex.active + ":" + route}>
             {workbenchMode ? (
               <Workbench
                 key={route}
@@ -2268,17 +2275,9 @@ function App() {
                 update={update}
               />
             ) : (
-              <Suspense
-                fallback={
-                  <div className="notice" role="status">
-                    Opening your workspace…
-                  </div>
-                }
-              >
-                {page}
-              </Suspense>
+              <Suspense fallback={<LoadingState />}>{page}</Suspense>
             )}
-          </WorkspaceBoundary>
+          </RouteBoundary>
           <footer className="footer">
             <span>Made for a mind like yours.</span>
             <span>MindineersOS · Your workspace</span>
@@ -2809,28 +2808,3 @@ function Modal({
     </Dialog>
   );
 }
-class WorkspaceBoundary extends React.Component {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? (
-      <div className="empty">
-        <h1>Let’s get your workspace back.</h1>
-        <p>
-          The interface hit an unexpected error. Your stored data has not been
-          cleared.
-        </p>
-        <Button onClick={() => location.reload()}>Reload workspace</Button>
-      </div>
-    ) : (
-      this.props.children
-    );
-  }
-}
-createRoot(document.getElementById("root")).render(
-  <WorkspaceBoundary>
-    <App />
-  </WorkspaceBoundary>,
-);
