@@ -1,10 +1,10 @@
+import IdentityJourney from "./domains/administration/IdentityJourney";
 import React, { useState } from "react";
-import { ArrowRight, ShieldCheck, User, Check, Upload } from "lucide-react";
+import { ArrowRight, User, Check, Upload } from "lucide-react";
 import { ThemeToggle } from "./Welcome";
 import { Field } from "./ProductUI";
 import { validateExperience } from "./experience-model";
 export function AccountEntry({ route, theme, toggle }) {
-  const [message, setMessage] = useState("");
   const recovery = route === "recovery",
     signup = route === "sign-up",
     join = route === "join";
@@ -58,71 +58,7 @@ export function AccountEntry({ route, theme, toggle }) {
             Continue to local workspace <ArrowRight size={18} />
           </a>
           <div className="account-divider">CLOUD ACCOUNT</div>
-          <div className="notice">
-            <ShieldCheck size={20} />
-            <p>
-              Cloud authentication is not connected. No password is collected
-              and no account, invitation or recovery email will be created.
-            </p>
-          </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setMessage(
-                "The account service is unavailable. Your details were not sent or saved. You can continue to your local workspace.",
-              );
-            }}
-          >
-            {signup && (
-              <label>
-                Your name
-                <input
-                  name="name"
-                  autoComplete="name"
-                  maxLength={120}
-                  required
-                />
-              </label>
-            )}
-            <label>
-              Email address
-              <input
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                maxLength={254}
-                placeholder="you@example.com"
-              />
-            </label>
-            {join && (
-              <label>
-                Invitation reference
-                <input
-                  name="invitation"
-                  maxLength={500}
-                  required
-                  placeholder="Invitation reference from your team"
-                />
-              </label>
-            )}
-            <button className="exp-button" type="submit">
-              Check{" "}
-              {recovery
-                ? "recovery"
-                : signup
-                  ? "signup"
-                  : join
-                    ? "invitation"
-                    : "sign-in"}{" "}
-              availability
-            </button>
-            {message && (
-              <p role="status" className="notice">
-                {message}
-              </p>
-            )}
-          </form>
+          <IdentityJourney key={route} intent={route} />
           <nav aria-label="Account options">
             <a href="#sign-in">Sign in</a>
             <a href="#sign-up">Create account</a>

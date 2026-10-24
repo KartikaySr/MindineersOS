@@ -1,3 +1,4 @@
+import type { PhaseTwoCollections } from "../../domains/administration/model";
 export interface Entity {
   id: string;
 }
@@ -268,7 +269,7 @@ export type TraceRecord = Entity &
     artifacts: (Entity & TextFields<"name" | "type" | "content">)[];
     checkpoints: (Entity & TextFields<"name" | "at" | "node">)[];
   };
-export interface ProductCollections {
+export interface ProductCollections extends PhaseTwoCollections {
   documents: DocumentRecord[];
   ledger: LedgerRecord[];
   deliveries: DeliveryRecord[];

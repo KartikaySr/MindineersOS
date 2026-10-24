@@ -42,3 +42,7 @@ This is focused acceptance, not comprehensive end-to-end coverage. Full financia
 `npm run verify` passes: strict TypeScript checking, 58 automated tests, and production build. Type checking covers the new app/shared TypeScript modules; legacy JSX is not yet checked. Transport tests use injected fetch responses and never contact a backend. Existing recovery tests were strengthened to require invalid indexes to fail before writing. Server-render coverage includes eight shared-control/recovery cases.
 
 Browser regression was attempted again but local browser use was disabled in Work settings. Earlier browser results above belong to the preceding revision. Phase 1 shared-control, routing and file-preview changes still need interactive regression when browser access is restored.
+
+## Phase 2 administration — 24 October
+
+`npm run verify` passes with 64 tests, strict TypeScript checks and the production build. Nine additional server-render cases cover organization/lifecycle/billing/permissions/sessions and four identity intents. Unit tests verify draft validation, identity expiry and response validation, disconnected-service behavior, permission expiry/denial and guarded lifecycle/billing requests. Browser inventory explicitly reports local browser use disabled, so no new interactive acceptance is claimed. The main bundle is approximately 499 kB minified; the optional Three.js office remains above the warning threshold.

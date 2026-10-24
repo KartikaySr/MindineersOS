@@ -1,3 +1,4 @@
+import Lifecycle from "./domains/administration/Lifecycle";
 import React, { useState } from "react";
 const providers = [
   [
@@ -290,6 +291,14 @@ export default function Connections({ data, update }) {
                 placeholder="Allowed resources, mapping requirements…"
               />
             </label>
+            <Lifecycle
+              key={provider[0]}
+              data={data}
+              update={update}
+              provider={provider[0]}
+              account={config.account}
+              scopes={config.scopes}
+            />
             <button className="button dark" disabled>
               Connect account
             </button>

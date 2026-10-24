@@ -66,4 +66,8 @@ No claim of complete full-scope or production readiness should be made until the
 
 ## Phase 1 verification
 
-Typed infrastructure implementation is complete and passes type checking, 58 tests and the production build. New browser acceptance is blocked by disabled local browser use; the full-domain migration remains scheduled across subsequent phases. Phase 2 has not started and requires approval.
+Typed infrastructure implementation is complete and passes type checking, 58 tests and the production build. New browser acceptance is blocked by disabled local browser use; the full-domain migration remains scheduled across subsequent phases. Phase 2 was subsequently approved and implemented as documented below.
+
+## Phase 2 interface delivery
+
+Typed identity challenge/invitation/recovery/session journeys, organization setup drafts, fail-closed permission inspection, session revocation confirmation/acknowledgement UI, provider lifecycle requests and billing management drafts are implemented. All 64 tests, strict typecheck and the production build pass. Browser use was disabled; connected services and interactive acceptance remain unverified. See PHASE_2_ADMINISTRATION.md. Phase 3 awaits permission.

@@ -1,3 +1,4 @@
+import { phaseTwoValidators } from "./domains/administration/model.ts";
 import { experimentValidators } from "./experiment-model.js";
 import { businessValidators } from "./business-model.js";
 export const uid = () => crypto.randomUUID();
@@ -134,6 +135,7 @@ export function validateProduct(value) {
   const comment = (c) =>
     fields(c, ["id", "quote", "text", "at"]) && typeof c.resolved === "boolean";
   const validators = {
+    ...phaseTwoValidators,
     ...businessValidators,
     ...experimentValidators,
     accessReviews: (r) =>

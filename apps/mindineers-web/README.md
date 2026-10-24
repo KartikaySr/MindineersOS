@@ -100,3 +100,7 @@ Production deployment includes a Content Security Policy without inline scripts 
 The typed foundation lives in `src/app` (bootstrap/routing) and `src/shared` (contracts, repository/transport adapters and UI controls). Run `npm run verify` for strict type checking, tests and the production build. Existing domain JSX is still supported through compatibility exports; it is not yet fully type-checked. See [Phase 1 delivery](PHASE_1_FOUNDATION.md) and the [approval-gated phase plan](FRONTEND_PHASES.md).
 
 Storage failures now stay visible with export/retry actions, even when ordinary notifications are disabled. Local backup and workspace key formats remain compatible. The optional typed HTTP transport is disconnected by default and does not start backend services.
+
+## Phase 2 identity and administration
+
+Account entry now has a typed, service-ready identity journey. Security adds Organization and Effective access tabs plus an acknowledgement-based session interface. Integration inspectors include lifecycle review requests. Usage & billing adds Manage subscription with profile/change-request drafts. All cloud services remain disconnected by default; no grants, revocations, accounts, emails, or purchases are simulated as completed. See [Phase 2 report](PHASE_2_ADMINISTRATION.md).

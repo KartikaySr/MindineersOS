@@ -41,7 +41,7 @@ import Workbench from "./Workbench";
 import Onboarding from "./Onboarding";
 import MissionPlanner, { MissionEditor } from "./MissionPlanner";
 import Conversations from "./Conversations";
-import Connections from "./Connections";
+const Connections = lazy(() => import("./Connections"));
 import Artifacts from "./Artifacts";
 import CalendarWorkspace from "./CalendarWorkspace";
 import Customers from "./Customers";

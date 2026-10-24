@@ -1,3 +1,7 @@
+import Sessions from "./domains/administration/Sessions";
+import Organization from "./domains/administration/Organization";
+import PermissionInspector from "./domains/administration/PermissionInspector";
+import BillingManagement from "./domains/administration/BillingManagement";
 import AccessReview from "./AccessReview";
 import SecurityIncidents from "./SecurityIncidents";
 import React, { useState } from "react";
@@ -56,6 +60,8 @@ export default function Administration({ data, update }) {
       </div>
       <Tabs
         values={[
+          "Organization",
+          "Effective access",
           "Members",
           "Roles",
           "Policies",
@@ -67,7 +73,11 @@ export default function Administration({ data, update }) {
         value={tab}
         onChange={setTab}
       />
-      {tab === "Access review" ? (
+      {tab === "Organization" ? (
+        <Organization data={data} update={update} />
+      ) : tab === "Effective access" ? (
+        <PermissionInspector />
+      ) : tab === "Access review" ? (
         <AccessReview data={data} update={update} roles={roleList} />
       ) : tab === "Incidents" ? (
         <SecurityIncidents data={data} update={update} />
@@ -256,10 +266,7 @@ export default function Administration({ data, update }) {
           />
         </div>
       ) : tab === "Sessions" ? (
-        <Empty title="Identity services are not connected.">
-          Authenticated sessions, device revocation, and SSO activity will
-          appear here when the identity backend is available.
-        </Empty>
+        <Sessions />
       ) : (
         <>
           <Empty title="Audit history needs a trusted source.">
@@ -403,11 +410,19 @@ export function Subscription({ data, update }) {
         <span className="badge">No active subscription</span>
       </div>
       <Tabs
-        values={["Usage", "Plans", "Budgets", "Invoices"]}
+        values={[
+          "Usage",
+          "Plans",
+          "Budgets",
+          "Invoices",
+          "Manage subscription",
+        ]}
         value={tab}
         onChange={setTab}
       />
-      {tab === "Usage" ? (
+      {tab === "Manage subscription" ? (
+        <BillingManagement data={data} update={update} />
+      ) : tab === "Usage" ? (
         <>
           <div className="mission-summary">
             {[
