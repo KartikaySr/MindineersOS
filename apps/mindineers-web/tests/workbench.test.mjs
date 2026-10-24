@@ -92,3 +92,30 @@ test("workflow port contracts reject incompatible types and malformed JSON", () 
   assert.match(errors, /Type mismatch/);
   assert.match(errors, /valid JSON/);
 });
+
+test("workflow named ports validate both endpoints and compatible types", () => {
+  const g = makeGraph();
+  g.nodes[0].outputPorts = [{ name: "result", type: "Text" }];
+  g.nodes[1].inputPorts = [{ name: "payload", type: "Number" }];
+  g.edges[0] = {
+    from: "brief",
+    to: "review",
+    fromPort: "result",
+    toPort: "payload",
+  };
+  assert.ok(validateGraph(g).some((e) => e.includes("Port type mismatch")));
+  g.nodes[1].inputPorts[0].type = "Text";
+  assert.deepEqual(validateGraph(g), []);
+  g.edges[0].toPort = "missing";
+  assert.ok(validateGraph(g).some((e) => e.includes("missing input")));
+});
+test("nested subflows validate their graphs and bound recursion", () => {
+  const g = makeGraph();
+  g.nodes[0].type = "Subflow";
+  g.nodes[0].subflow = makeGraph();
+  assert.deepEqual(validateGraph(g), []);
+  g.nodes[0].subflow.edges.push({ from: "verify", to: "brief" });
+  assert.ok(validateGraph(g).some((e) => e.includes("cycle")));
+  g.nodes[0].subflow = g;
+  assert.ok(validateGraph(g).some((e) => e.includes("four nested")));
+});

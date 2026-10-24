@@ -9,6 +9,7 @@ export const nodeTypes = [
   "Timer",
   "Event",
   "Verification",
+  "Subflow",
 ];
 export const makeGraph = () => ({
   nodes: [
@@ -39,12 +40,38 @@ export const makeGraph = () => ({
     { from: "review", to: "verify" },
   ],
 });
-export function validateGraph(graph) {
+export function validateGraph(graph, depth = 0) {
+  if (depth > 4) return ["Subflows support at most four nested levels."];
+  if (!graph || !Array.isArray(graph.nodes) || !Array.isArray(graph.edges))
+    return ["Invalid graph structure."];
+  if (graph.nodes.length > 200 || graph.edges.length > 1000)
+    return ["Use at most 200 nodes and 1,000 connections per graph."];
   const errors = [],
     ids = new Set(graph.nodes.map((n) => n.id));
   if (!graph.nodes.length) errors.push("Add at least one node.");
   if (ids.size !== graph.nodes.length) errors.push("Node IDs must be unique.");
   for (const n of graph.nodes) {
+    for (const key of ["inputPorts", "outputPorts"]) {
+      const ports = n[key] || [];
+      if (!Array.isArray(ports) || ports.length > 50) {
+        errors.push(`${n.name}: invalid ports.`);
+        continue;
+      }
+      if (new Set(ports.map((p) => p.name)).size !== ports.length)
+        errors.push(`${n.name}: port names must be unique per direction.`);
+      for (const p of ports)
+        if (
+          !/^[a-zA-Z][a-zA-Z0-9_]{0,49}$/.test(p.name) ||
+          !["Any", "Text", "Object", "Array", "Number", "Boolean"].includes(
+            p.type,
+          )
+        )
+          errors.push(`${n.name}: use a valid port name and type.`);
+    }
+    if (n.type === "Subflow") {
+      for (const error of validateGraph(n.subflow, depth + 1))
+        errors.push(`${n.name} / ${error}`);
+    }
     for (const key of ["inputSchema", "outputSchema"]) {
       if (n[key]) {
         try {
@@ -87,7 +114,26 @@ export function validateGraph(graph) {
       errors.push(
         `Type mismatch: ${source.name} produces ${source.outputType}, but ${target.name} expects ${target.inputType}.`,
       );
-    const key = e.from + ">" + e.to;
+    const output = source?.outputPorts?.find((p) => p.name === e.fromPort),
+      input = target?.inputPorts?.find((p) => p.name === e.toPort);
+    if (e.fromPort && !output)
+      errors.push("Connection references a missing output port.");
+    if (e.toPort && !input)
+      errors.push("Connection references a missing input port.");
+    if (Boolean(e.fromPort) !== Boolean(e.toPort))
+      errors.push(
+        "Map both source and destination ports, or leave both empty for a control dependency.",
+      );
+    if (
+      output &&
+      input &&
+      output.type !== "Any" &&
+      input.type !== "Any" &&
+      output.type !== input.type
+    )
+      errors.push(`Port type mismatch: ${e.fromPort} → ${e.toPort}.`);
+    const key =
+      e.from + ">" + e.to + ":" + (e.fromPort || "") + ":" + (e.toPort || "");
     if (seenEdges.has(key)) errors.push("Duplicate dependency.");
     seenEdges.add(key);
   }

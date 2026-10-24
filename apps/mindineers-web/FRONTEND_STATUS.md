@@ -35,7 +35,7 @@ These are real frontend gaps, not tasks that can all be solved by merely adding 
 
 - Strict TypeScript conversion; typed transport adapters and generated API contracts once the backend interface is agreed.
 - Cloud organization creation, connected identity challenge/error/session flows, and effective-permission interfaces. Local workspace switching and account-entry availability screens are implemented; these are not working cloud authentication.
-- Full workflow named typed ports, full JSON Schema validation, conditional/parallel semantics, nested subflows, trigger history and configuration diff UI. Basic schema/type and concurrency validation is implemented.
+- Full JSON Schema validation, conditional/parallel runtime semantics, trigger history, visual edge routing and configuration diff UI. Named ports, endpoint/type checks, nested subflow editing (four levels), schema syntax and concurrency validation are implemented.
 - Server-connected run DAG, partial artifacts, acknowledged controls, replay, checkpoints and incident correlation.
 - Server-authorized review ownership, timed notifications and field-level revision highlighting. Local delegation, escalation, snooze, before/after comparison and version invalidation are implemented.
 - Rich document suggestions, selected-region proposals and more artifact preview formats. Basic document/sheet/slide editors are implemented.

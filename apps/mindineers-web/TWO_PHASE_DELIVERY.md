@@ -27,6 +27,8 @@ Implemented:
 - CRM CSV parsing, explicit field mapping, validation preview, duplicate-email skips, reviewed merge and guarded session undo.
 - Approval delegation/escalation and routing history, snoozed queue, expiry-bounded reminders, revision wake-up and before/after comparison. These are local coordination records, not permission grants or sent notifications.
 
+- Workflow named ports, port type/endpoint validation and recursive nested subflow editing with depth limits. Parent-version validation includes nested graph errors; nested editors cannot bypass the parent save gate.
+
 ## Acceptance evidence
 
 Browser testing completed in an isolated workspace named “Frontend acceptance · 24 Oct”: setup role selection and reload restoration, tour pause/resume, profile save/reload, dashboard section reorder/hide, mission creation using full editor, Core briefing and navigation, light/dark landing inspection, mobile dashboard and landing inspection. A Core effect-cleanup crash and mobile header overflow were found and fixed.

@@ -190,7 +190,19 @@ export function validateWorkspace(v) {
       throw new Error("Invalid extended workspace");
     const values = (v) =>
       object(v) && Object.values(v).every((x) => text(x, 200000));
-    const graph = (g) =>
+    const ports = (p) =>
+      p === undefined ||
+      rows(
+        p,
+        (x) =>
+          object(x) &&
+          text(x.name, 50) &&
+          ["Any", "Text", "Object", "Array", "Number", "Boolean"].includes(
+            x.type,
+          ),
+      );
+    const graph = (g, depth = 0) =>
+      depth <= 4 &&
       object(g) &&
       rows(
         g.nodes,
@@ -200,9 +212,20 @@ export function validateWorkspace(v) {
           text(n.name, 300) &&
           text(n.type, 50) &&
           Number.isFinite(n.timeout) &&
-          Number.isFinite(n.retries),
+          Number.isFinite(n.retries) &&
+          ports(n.inputPorts) &&
+          ports(n.outputPorts) &&
+          (n.subflow === undefined || graph(n.subflow, depth + 1)),
       ) &&
-      rows(g.edges, (e) => object(e) && text(e.from, 120) && text(e.to, 120));
+      rows(
+        g.edges,
+        (e) =>
+          object(e) &&
+          text(e.from, 120) &&
+          text(e.to, 120) &&
+          (e.fromPort === undefined || text(e.fromPort, 50)) &&
+          (e.toPort === undefined || text(e.toPort, 50)),
+      );
     for (const d of Object.values(s.details)) {
       if (
         !object(d) ||

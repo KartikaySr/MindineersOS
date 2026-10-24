@@ -789,6 +789,28 @@ function Trials({ items, save }) {
     <section>
       <h3>Manually entered trials</h3>
       <p>No benchmark has run. These records describe results you enter.</p>
+      {node?.type === "Subflow" && node.subflow && depth < 4 && (
+        <details className="exp-panel" open>
+          <summary>Edit nested subflow · {node.name}</summary>
+          <p>
+            Contained configuration, saved with its parent. No execution occurs.
+          </p>
+          <Workflow
+            key={node.id}
+            graph={node.subflow}
+            depth={depth + 1}
+            onRun={onRun}
+            save={(subflow) =>
+              save({
+                ...graph,
+                nodes: graph.nodes.map((n) =>
+                  n.id === node.id ? { ...n, subflow } : n,
+                ),
+              })
+            }
+          />
+        </details>
+      )}
       <form
         className="wb-inline"
         onSubmit={(e) => {
@@ -831,7 +853,7 @@ function Trials({ items, save }) {
     </section>
   );
 }
-export function Workflow({ graph, save, onRun }) {
+export function Workflow({ graph, save, onRun, depth = 0 }) {
   const [selected, setSelected] = useState(graph.nodes[0]?.id || ""),
     [mode, setMode] = useState("Graph");
   const node = graph.nodes.find((n) => n.id === selected),
@@ -866,8 +888,8 @@ export function Workflow({ graph, save, onRun }) {
         >
           Add node
         </Btn>
-        <Btn disabled={!!errors.length} onClick={onRun}>
-          Save workflow version
+        <Btn disabled={!!errors.length || depth > 0} onClick={onRun}>
+          {depth > 0 ? "Save from parent workflow" : "Save workflow version"}
         </Btn>
       </div>
       <div
@@ -911,16 +933,123 @@ export function Workflow({ graph, save, onRun }) {
           <Field
             label="Node type"
             value={node.type}
-            options={nodeTypes}
+            options={
+              depth >= 4 ? nodeTypes.filter((t) => t !== "Subflow") : nodeTypes
+            }
             onChange={(type) =>
               save({
                 ...graph,
                 nodes: graph.nodes.map((n) =>
-                  n.id === node.id ? { ...n, type } : n,
+                  n.id === node.id
+                    ? {
+                        ...n,
+                        type,
+                        ...(type === "Subflow" && !n.subflow
+                          ? { subflow: makeGraph() }
+                          : {}),
+                      }
+                    : n,
                 ),
               })
             }
           />
+          {["inputPorts", "outputPorts"].map((key) => (
+            <section key={key} className="exp-panel">
+              <h4>
+                {key === "inputPorts"
+                  ? "Named input ports"
+                  : "Named output ports"}
+              </h4>
+              {(node[key] || []).map((p, index) => (
+                <div className="profile-fields" key={index}>
+                  <Field
+                    label={`Port ${index + 1} name`}
+                    value={p.name}
+                    onChange={(name) =>
+                      save({
+                        ...graph,
+                        nodes: graph.nodes.map((n) =>
+                          n.id === node.id
+                            ? {
+                                ...n,
+                                [key]: n[key].map((port, i) =>
+                                  i === index ? { ...port, name } : port,
+                                ),
+                              }
+                            : n,
+                        ),
+                      })
+                    }
+                  />
+                  <Field
+                    label={`Port ${index + 1} type`}
+                    value={p.type}
+                    options={[
+                      "Any",
+                      "Text",
+                      "Object",
+                      "Array",
+                      "Number",
+                      "Boolean",
+                    ]}
+                    onChange={(type) =>
+                      save({
+                        ...graph,
+                        nodes: graph.nodes.map((n) =>
+                          n.id === node.id
+                            ? {
+                                ...n,
+                                [key]: n[key].map((port, i) =>
+                                  i === index ? { ...port, type } : port,
+                                ),
+                              }
+                            : n,
+                        ),
+                      })
+                    }
+                  />
+                  <Btn
+                    onClick={() =>
+                      save({
+                        ...graph,
+                        nodes: graph.nodes.map((n) =>
+                          n.id === node.id
+                            ? {
+                                ...n,
+                                [key]: n[key].filter((_, i) => i !== index),
+                              }
+                            : n,
+                        ),
+                      })
+                    }
+                  >
+                    Remove port {index + 1}
+                  </Btn>
+                </div>
+              ))}
+              <Btn
+                disabled={(node[key] || []).length >= 50}
+                onClick={() =>
+                  save({
+                    ...graph,
+                    nodes: graph.nodes.map((n) =>
+                      n.id === node.id
+                        ? {
+                            ...n,
+                            [key]: [
+                              ...(n[key] || []),
+                              { name: "port_" + id().slice(0, 8), type: "Any" },
+                            ],
+                          }
+                        : n,
+                    ),
+                  })
+                }
+              >
+                Add {key === "inputPorts" ? "input" : "output"} port
+              </Btn>
+            </section>
+          ))}
           {["inputSchema", "outputSchema"].map((key) => (
             <Field
               key={key}
@@ -1076,6 +1205,28 @@ export function Workflow({ graph, save, onRun }) {
           </Btn>
         </div>
       )}
+      {node?.type === "Subflow" && node.subflow && depth < 4 && (
+        <details className="exp-panel" open>
+          <summary>Edit nested subflow · {node.name}</summary>
+          <p>
+            Contained configuration, saved with its parent. No execution occurs.
+          </p>
+          <Workflow
+            key={node.id}
+            graph={node.subflow}
+            depth={depth + 1}
+            onRun={onRun}
+            save={(subflow) =>
+              save({
+                ...graph,
+                nodes: graph.nodes.map((n) =>
+                  n.id === node.id ? { ...n, subflow } : n,
+                ),
+              })
+            }
+          />
+        </details>
+      )}
       <form
         className="wb-inline"
         onSubmit={(e) => {
@@ -1104,6 +1255,22 @@ export function Workflow({ graph, save, onRun }) {
             ))}
           </select>
         </label>
+        <label>
+          Output port (optional)
+          <input
+            name="fromPort"
+            maxLength={50}
+            placeholder="Leave blank for control flow"
+          />
+        </label>
+        <label>
+          Input port (optional)
+          <input
+            name="toPort"
+            maxLength={50}
+            placeholder="Exact destination port name"
+          />
+        </label>
         <button className="button" disabled={graph.nodes.length < 2}>
           Add dependency
         </button>
@@ -1113,6 +1280,9 @@ export function Workflow({ graph, save, onRun }) {
           <span>
             {graph.nodes.find((n) => n.id === e.from)?.name} →{" "}
             {graph.nodes.find((n) => n.id === e.to)?.name}
+            {e.fromPort
+              ? ` · ${e.fromPort} → ${e.toPort}`
+              : " · control dependency"}
           </span>
           <Btn
             onClick={() =>
