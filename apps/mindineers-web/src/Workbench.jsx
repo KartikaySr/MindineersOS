@@ -1,14 +1,14 @@
+import ScopeSettings from "./domains/settings/ScopeSettings";
 import Triggers from "./domains/execution/Triggers";
 import WorkflowCanvas from "./domains/execution/WorkflowCanvas";
 import ConfigurationDiff from "./domains/execution/ConfigurationDiff";
 import React, { useState } from "react";
-import { schema, settingGroups } from "./workbench-schema";
+import { schema } from "./workbench-schema";
 import {
   makeGraph,
   nodeTypes,
   validateGraph,
   invoiceTotal,
-  effectiveSetting,
   validHttpUrl,
 } from "./workbench-model";
 import "./workbench.css";
@@ -82,7 +82,17 @@ export default function Workbench({ route, data, update }) {
   if (route === "runs")
     return <RunControl runs={suite.runs || []} change={change} />;
   if (route === "settings")
-    return <ScopeSettings suite={suite} change={change} />;
+    return (
+      <ScopeSettings
+        suite={suite}
+        change={change}
+        entities={{
+          Project: data.projects || [],
+          Agent: data.agents || [],
+          Run: suite.runs || [],
+        }}
+      />
+    );
   const definitions = schema[route] || {
     tabs: {
       Configuration: ["Objective", "Configuration", "Acceptance criteria"],
@@ -1337,110 +1347,6 @@ export function RunControl() {
               <span className="badge">Backend required</span>
             </article>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-function ScopeSettings({ suite, change }) {
-  const scopes = ["Organization", "Workspace", "Project", "Agent", "Run"],
-    [scope, setScope] = useState("Workspace"),
-    [group, setGroup] = useState("Profile");
-  const values = suite.settings || {};
-  const set = (key, value) =>
-    change((s) => ({
-      ...s,
-      settings: {
-        ...s.settings,
-        [scope]: { ...s.settings?.[scope], [key]: value },
-      },
-    }));
-  return (
-    <section className="wb">
-      <div className="wb-banner">
-        <strong>Settings policy designer</strong>
-        <span>
-          Design your settings before connecting your backend. Personal
-          appearance controls are available in Overview. Server policies remain
-          inactive until connected.
-        </span>
-      </div>
-      <div className="wb-tabs">
-        {scopes.map((s) => (
-          <button
-            className={scope === s ? "active" : ""}
-            key={s}
-            onClick={() => setScope(s)}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
-      <div className="wb-layout">
-        <aside className="wb-records">
-          {Object.keys(settingGroups).map((g) => (
-            <button
-              key={g}
-              className={group === g ? "active" : ""}
-              onClick={() => setGroup(g)}
-            >
-              {g}
-            </button>
-          ))}
-        </aside>
-        <div className="wb-detail">
-          <div className="wb-heading">
-            <div>
-              <h2>
-                {scope} · {group}
-              </h2>
-              <p>
-                Preview inheritance from organization → workspace → project →
-                agent → run. These defaults describe each scope level; backend
-                integration will resolve individual entities.
-              </p>
-            </div>
-          </div>
-          <div className="wb-body">
-            {settingGroups[group].map(([key, label, fallback]) => {
-              const resolved = effectiveSetting(
-                  [
-                    { name: "Default", values: { [key]: fallback } },
-                    ...scopes
-                      .slice(0, scopes.indexOf(scope) + 1)
-                      .map((name) => ({ name, values: values[name] || {} })),
-                  ],
-                  key,
-                ),
-                overridden = Object.hasOwn(values[scope] || {}, key);
-              return (
-                <div className="wb-policy" key={key}>
-                  <Field
-                    label={label}
-                    value={resolved.value}
-                    onChange={(v) => set(key, v)}
-                  />
-                  <small>Effective source: {resolved.source}</small>
-                  {overridden && (
-                    <Btn
-                      onClick={() =>
-                        change((s) => {
-                          const next = { ...s.settings[scope] };
-                          delete next[key];
-                          return {
-                            ...s,
-                            settings: { ...s.settings, [scope]: next },
-                          };
-                        })
-                      }
-                    >
-                      Use inherited value
-                    </Btn>
-                  )}
-                </div>
-              );
-            })}
-          </div>
         </div>
       </div>
     </section>

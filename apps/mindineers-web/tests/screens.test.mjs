@@ -24,6 +24,7 @@ test("product screens render empty and restored data without requiring backend a
  import {LoadingState,ErrorState,SaveFailure,RouteBoundary} from '${src}shared/ui/AsyncState.tsx';
  import {ServiceError} from '${src}shared/services/errors.ts';
  import {Button,Field,Tabs} from '${src}shared/ui/controls.tsx';
+ import ScopeSettings from '${src}domains/settings/ScopeSettings.tsx';
  import ResearchWorkspace from '${src}domains/product/ResearchWorkspace.tsx';
  import Ingestion from '${src}domains/product/Ingestion.tsx';
  import ReviewPanel from '${src}domains/product/ReviewPanel.tsx';
@@ -111,6 +112,8 @@ test("product screens render empty and restored data without requiring backend a
  React.createElement(Dashboard,{data:base,update:()=>{},startTour:()=>{},openAssistant:()=>{}}),
  React.createElement(GuidedTour,{settings:{tour:{step:5,state:'Active'}},update:()=>{},navigate:()=>{},close:()=>{}}),
  React.createElement(CoreAssistant,{data:base,route:'home',initialPrompt:'brief me',onClose:()=>{},navigate:()=>{}}),
+ React.createElement(ScopeSettings,{suite:{settings:{}},change:()=>{},entities:{}}),
+ React.createElement(ScopeSettings,{suite:{settings:{Organization:{language:'French','mandatory:language':'true'},Workspace:{language:'English'}}},change:()=>{},entities:{Agent:[{id:'a',name:'Agent A'}]}}),
  React.createElement(Onboarding,{settings:{name:'You',workspace:'Test',theme:'Light',motion:false,budget:50},finish:()=>{}})
  ].map(renderToString);
  export const results=[base,populated].flatMap(data=>screens.map(Component=>renderToString(React.createElement(Component,{data,update:()=>{}}))));
@@ -133,7 +136,7 @@ test("product screens render empty and restored data without requiring backend a
     });
     const { results, entryResults } = await import(pathToFileURL(outfile).href);
     assert.equal(results.length, 26);
-    assert.equal(entryResults.length, 53);
+    assert.equal(entryResults.length, 55);
     assert.match(entryResults[5], /<strong>bold<\/strong>/);
     assert.doesNotMatch(entryResults[5], /href="javascript:|<script>/);
     assert.match(entryResults[5], /&lt;script&gt;/);

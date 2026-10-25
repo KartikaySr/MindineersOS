@@ -112,3 +112,7 @@ Workflow Studio adds a visual dependency canvas, configuration comparisons and t
 ## Phase 4 product workflows
 
 Knowledge ingestion → research brief → reviewed document now forms a usable local workflow. Exact source evidence, contradictory claims, revision-bound review, release-readiness checks and separate evaluation adjudication preserve context without claiming backend execution. Eight product screens and the business/evaluation models now use strict TypeScript. See [Phase 4 delivery](PHASE_4_PRODUCT_WORKFLOWS.md) and [verification](VERIFICATION.md). Phase 5 requires approval.
+
+## Phase 5 progress
+
+The settings policy designer now supports separate project, agent and run drafts, explicit preview hierarchy selections, mandatory-rule conflict reporting, validated values, inheritance reset and guarded single-edit undo. These are local policy drafts; enforcement requires the backend. Phase 5 remains in progress; see [remaining work](PHASE_5_SETTINGS.md).
