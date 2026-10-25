@@ -28,7 +28,7 @@ For an existing Vercel project, set Root Directory back to `.` if a different fo
 
 Import this directory as a repository root. Its own `vercel.json` uses `npm ci`, `npm run build`, and `dist`.
 
-A local production build has been verified. A hosted Vercel deployment must still be confirmed in the user's account; a successful local build does not prove a hosted deployment.
+The Node 24 production build is verified. Hosted HTML, assets and configured security headers have been checked at https://www.mindineers.com. See PHASE_6_RELEASE.md for the exact release verification status; HTTP checks do not replace browser acceptance.
 
 ## Public website and personal experience
 
@@ -70,7 +70,7 @@ The browser persistence layer is intended for frontend use and development befor
 
 This is an expanded frontend implementation, **not yet a verified completion of every requirement in the full-scope architecture**. Some enterprise modules currently provide structured configuration/review workspaces rather than their final specialized interactions. See `FRONTEND_STATUS.md` for remaining frontend work; adding backend endpoints alone does not finish those gaps.
 
-The code currently uses JavaScript/JSX. A strict TypeScript migration and broader automated accessibility/end-to-end coverage remain outstanding. The optional Three.js chunk is lazy loaded and still emits a bundle-size warning.
+Dedicated screens and infrastructure use strict TypeScript. The main shell and 11 other handwritten JavaScript files remain outside strict checking; broader accessibility/end-to-end coverage remains outstanding. The optional Three.js chunk is lazy loaded and still emits a bundle-size warning.
 
 ## Source structure
 
@@ -97,7 +97,7 @@ Production deployment includes a Content Security Policy without inline scripts 
 
 ## Phase 1 foundation
 
-The typed foundation lives in `src/app` (bootstrap/routing) and `src/shared` (contracts, repository/transport adapters and UI controls). Run `npm run verify` for strict type checking, tests and the production build. Existing domain JSX is still supported through compatibility exports; it is not yet fully type-checked. See [Phase 1 delivery](PHASE_1_FOUNDATION.md) and the [approval-gated phase plan](FRONTEND_PHASES.md).
+The typed foundation lives in `src/app` (bootstrap/routing) and `src/shared` (contracts, repository/transport adapters and UI controls). Run `npm run verify` for strict type checking, tests and the production build. Legacy import paths are supported through compatibility exports; dedicated screen implementations are now strict TypeScript. See [Phase 1 delivery](PHASE_1_FOUNDATION.md) and the [approval-gated phase plan](FRONTEND_PHASES.md).
 
 Storage failures now stay visible with export/retry actions, even when ordinary notifications are disabled. Local backup and workspace key formats remain compatible. The optional typed HTTP transport is disconnected by default and does not start backend services.
 
@@ -117,4 +117,10 @@ Knowledge ingestion → research brief → reviewed document now forms a usable 
 
 Settings support independent entity overrides and mandatory-rule conflict previews. Shared, bounded workspace undo/redo protects against stale saves and resets editors on restored data. The remaining 25 dedicated screen implementations are strict TypeScript, including the workflow studio, personal experience and 3D office. Mobile focus handling, selected-state announcements and keyboard import access have been improved.
 
-Strict checks, 94 tests and the production build pass. Browser acceptance remains pending because local browser use is disabled. See [Phase 5 delivery](PHASE_5_SETTINGS.md) and the [acceptance checklist](PHASE_5_ACCEPTANCE.md). Phase 6 release work requires explicit approval; backend/database work remains separately gated.
+Strict checks, 94 tests and the production build pass. Browser acceptance remains pending because local browser use is disabled. See [Phase 5 delivery](PHASE_5_SETTINGS.md) and the [acceptance checklist](PHASE_5_ACCEPTANCE.md). Phase 6 was subsequently approved and implemented below; backend/database work remains separately gated.
+
+## Phase 6 release checks
+
+On Node 24, run `npm run verify:release` for tests, strict checks, the production build, compressed asset budgets, deployment-header consistency and a type-boundary report. Run `npm run verify:hosted -- https://www.mindineers.com --match-local` after deployment to compare every hosted asset with the locally verified build. The type report is generated at `reports/type-boundary.json`; `npm run audit:types -- --require-complete` intentionally fails until the remaining handwritten JavaScript is migrated.
+
+See [Phase 6 delivery and remaining work](PHASE_6_RELEASE.md). Browser acceptance is still pending; passing automated checks does not imply complete full-scope production readiness.

@@ -60,7 +60,7 @@ These are real frontend gaps, not tasks that can all be solved by merely adding 
 - Connected billing/subscription administration, authoritative effective permissions and incident telemetry. Local access-review and incident-response interfaces are implemented.
 - Per-entity overrides and mandatory-policy conflict previews are implemented. Authoritative entity relationships and enforcement require backend integration.
 - Local workspace undo/redo and stale-save isolation are implemented. Collaborative conflict resolution, externally executed action recovery and offline synchronization still need connected contracts.
-- Comprehensive mobile/keyboard/screen-reader regression coverage and performance budgets.
+- Comprehensive mobile/keyboard/screen-reader regression coverage and measured browser performance. Compressed build-size budgets are now enforced.
 
 No claim of complete full-scope or production readiness should be made until these remaining frontend requirements are implemented and verified. Current mock/example content is presentation data, not evidence of executed agents or live integrations.
 
@@ -82,4 +82,10 @@ Source ingestion and dedicated research briefs now connect exact evidence to rev
 
 ## Phase 5 delivery
 
-Settings, bounded workspace recovery, mobile/keyboard interaction improvements and the remaining 25 dedicated TSX screen migrations are implemented. Strict checks, 94 tests and the production build pass. Server rendering covers 38 domain and 70 entry/component cases. Browser acceptance remains pending because local browser use stayed disabled. See PHASE_5_SETTINGS.md and PHASE_5_ACCEPTANCE.md. The main shell and some legacy helpers remain JavaScript; Phase 6 release acceptance has not started.
+Settings, bounded workspace recovery, mobile/keyboard interaction improvements and the remaining 25 dedicated TSX screen migrations are implemented. Strict checks, 94 tests and the production build pass. Server rendering covers 38 domain and 70 entry/component cases. Browser acceptance remains pending because local browser use stayed disabled. See PHASE_5_SETTINGS.md and PHASE_5_ACCEPTANCE.md. The main shell and some legacy helpers remain JavaScript; Phase 6 implementation is documented below.
+
+## Phase 6 release engineering
+
+Node 24.22.1 passes strict checks, 97 tests and the production build. Route-level lazy loading reduces the initial JavaScript to approximately 133 kB gzip. Build gates enforce size budgets and security-header consistency; a hosted checker verifies HTTP responses and optionally every asset against the local release. DOM integration mounts all non-WebGL routes and exercises settings persistence and guarded undo/redo. Backup validation now also rejects duplicate legacy record IDs and unsafe legacy evidence URLs.
+
+The type audit identifies 81 TypeScript files, 41 compatibility facades, 12 handwritten JavaScript files outside strict checking and one generated JavaScript file. These are file counts, not a completion percentage. Browser/mobile/accessibility/WebGL acceptance remains pending. See PHASE_6_RELEASE.md for release evidence and the remaining work. No backend or database implementation was started.

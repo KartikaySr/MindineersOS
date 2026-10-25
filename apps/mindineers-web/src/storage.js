@@ -1,3 +1,4 @@
+import { validHttpUrl } from "./workbench-model.js";
 import { validateDataTree } from "./input-safety.js";
 import { validateExperience } from "./experience-model.js";
 import { validateProduct } from "./product-model.js";
@@ -314,7 +315,7 @@ export function validateWorkspace(v) {
             ["id", "url", "excerpt", "assessment", "at"].every((k) =>
               text(e[k]),
             ) &&
-            /^https?:\/\//i.test(e.url),
+            validHttpUrl(e.url),
         )
       )
         throw new Error("Invalid evidence");
@@ -352,6 +353,24 @@ export function validateWorkspace(v) {
       !Object.values(s.localRecords).every((a) => rows(a, record))
     )
       throw new Error("Invalid extended settings or records");
+  }
+  // Duplicate IDs make editor updates ambiguous: one action could overwrite
+  // multiple records. Check every list with record identity at the boundary.
+  const identityLists = [
+    v.projects,
+    v.agents,
+    ...Object.values(v.records),
+    v.messages,
+    v.posts,
+    v.approvals,
+    ...(v.conversations || []).map((t) => t.messages),
+    v.conversations || [],
+    ...Object.values(v.suite?.localRecords || {}),
+  ];
+  for (const list of identityLists) {
+    const ids = list.map((record) => record.id);
+    if (new Set(ids).size !== ids.length)
+      throw new Error("Duplicate workspace record identifiers");
   }
   if (v.product !== undefined) validateProduct(v.product);
   return v;

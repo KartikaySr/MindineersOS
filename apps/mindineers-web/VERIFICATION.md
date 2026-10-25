@@ -69,3 +69,11 @@ This is focused acceptance, not a whole-app end-to-end or screen-reader certific
 `npm run verify`: strict typecheck, 94 tests, production build pass. Expanded server rendering covers 38 domain cases and 70 entry/component cases. Added tests check workspace undo/redo, same-field typing grouping, separate action history, stale callbacks after restore/workspace replacement, history bounds and invalid restored domain fields. Matching Three.js type definitions were installed with lifecycle scripts disabled; npm reported zero vulnerabilities at install time.
 
 Interactive browser access was attempted repeatedly after the user offered to enable it. The tool still returned “Local browser use is disabled in Work settings.” The desktop/mobile, focus, screen-reader and WebGL matrix in PHASE_5_ACCEPTANCE.md is therefore pending. Earlier Phase 4 browser evidence does not validate these Phase 5 changes. Main/office bundle warnings remain. Node 22.23.2 was used locally; Node 24 and hosted deployment remain unverified.
+
+## Phase 6 — 25 October 2026
+
+`npm run verify:release` passes on Node 24.22.1: 97 tests, strict TypeScript checking, production build, compressed asset budgets and deployment-header consistency. A new JSDOM test mounts the actual application across all non-office routes and exercises persisted settings plus confirmed undo/redo. It mocks layout APIs and is not browser or WebGL acceptance. Two additional storage tests reject duplicate legacy IDs and unsafe evidence URLs.
+
+Initial JavaScript is approximately 133 kB gzip, under the 160 kB budget. Every JS chunk is under 180 kB gzip; the optional office still emits Vite’s raw-size warning. The audit reports 81 TypeScript files, 41 compatibility facades, 12 unchecked handwritten JavaScript files and one generated file.
+
+Hosted HTML, referenced JS/CSS and configured security headers passed HTTP checks at https://www.mindineers.com before the Phase 6 push. Release-specific asset matching is recorded in PHASE_6_RELEASE.md. Local browser use remained disabled, so the Phase 5 acceptance matrix and full cross-device/screen-reader/WebGL regression are still pending.

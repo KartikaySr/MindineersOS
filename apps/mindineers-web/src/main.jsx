@@ -44,14 +44,14 @@ import "./product.css";
 import { validateWorkspace } from "./storage";
 import { saveFile, downloadFile } from "./files";
 import { fields } from "./fields";
-import Workbench from "./Workbench";
+const Workbench = lazy(() => import("./Workbench"));
 import Onboarding from "./Onboarding";
 import MissionPlanner, { MissionEditor } from "./MissionPlanner";
-import Conversations from "./Conversations";
+const Conversations = lazy(() => import("./Conversations"));
 const Connections = lazy(() => import("./Connections"));
-import Artifacts from "./Artifacts";
-import CalendarWorkspace from "./CalendarWorkspace";
-import Customers from "./Customers";
+const Artifacts = lazy(() => import("./Artifacts"));
+const CalendarWorkspace = lazy(() => import("./CalendarWorkspace"));
+const Customers = lazy(() => import("./Customers"));
 import WorkspaceManager from "./WorkspaceManager";
 import {
   readIndex,
@@ -2306,16 +2306,18 @@ export default function App() {
           <RouteBoundary
             key={workspaceIndex.active + ":" + route + ":" + history.restores}
           >
-            {workbenchMode ? (
-              <Workbench
-                key={route}
-                route={route}
-                data={data}
-                update={update}
-              />
-            ) : (
-              <Suspense fallback={<LoadingState />}>{page}</Suspense>
-            )}
+            <Suspense fallback={<LoadingState />}>
+              {workbenchMode ? (
+                <Workbench
+                  key={route}
+                  route={route}
+                  data={data}
+                  update={update}
+                />
+              ) : (
+                page
+              )}
+            </Suspense>
           </RouteBoundary>
           <footer className="footer">
             <span>Made for a mind like yours.</span>

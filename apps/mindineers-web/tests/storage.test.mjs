@@ -139,3 +139,47 @@ test("restored workflow optional fields must match the typed editor contract", (
   };
   assert.throws(() => validateWorkspace(value), /graph/);
 });
+
+test("duplicate identity in a workspace list is rejected before one edit can affect multiple records", () => {
+  for (const collection of ["projects", "agents"]) {
+    const value = structuredClone(fixture());
+    value[collection].push(structuredClone(value[collection][0]));
+    assert.throws(() => validateWorkspace(value), /Duplicate/);
+  }
+  const value = structuredClone(fixture());
+  const record = { id: "same", name: "A", description: "", status: "Draft" };
+  value.records.missions = [record, { ...record, name: "B" }];
+  assert.throws(() => validateWorkspace(value), /Duplicate/);
+});
+test("legacy evidence restore rejects credentials and control characters in links", () => {
+  for (const url of [
+    "https://user:secret@example.org",
+    "https://example.org/\npath",
+  ]) {
+    const value = structuredClone(fixture());
+    value.suite = {
+      settings: {},
+      localRecords: {},
+      runs: [],
+      details: {
+        r: {
+          values: {},
+          history: [],
+          checklist: [],
+          comments: [],
+          links: [],
+          evidence: [
+            {
+              id: "e",
+              at: "2026-10-25",
+              url,
+              excerpt: "Quote",
+              assessment: "Supports",
+            },
+          ],
+        },
+      },
+    };
+    assert.throws(() => validateWorkspace(value), /evidence/);
+  }
+});
