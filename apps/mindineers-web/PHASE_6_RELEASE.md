@@ -20,9 +20,11 @@ On Node 24.22.1, `npm run verify:release` passes 97 tests, strict checking, prod
 
 The type audit finds 81 TypeScript files, 41 compatibility facades, 12 unchecked handwritten JavaScript files and one generated JavaScript file. File counts do not measure feature completeness. The remaining handwritten files are `data.js`, `experience-model.js`, `fields.js`, `icons.js`, `main.jsx`, `product-model.js`, `resources.js`, `review-routing.js`, `schema-validation.js`, `storage.js`, `workbench-model.js` and `workbench-schema.js`.
 
-Hosted HTML, referenced assets and all configured security headers passed at https://www.mindineers.com before this release. Matching the Phase 6 deployment against the local release manifest is pending the Git push/deployment.
+Hosted HTML, referenced assets and all configured security headers passed at https://www.mindineers.com before this release. Phase 6 was pushed as commit 0930df8. After Vercel completed deployment, `verify:hosted -- https://www.mindineers.com --match-local` passed: hosted HTML, configured security headers and all 27 asset hashes match the locally verified build. GitHub CLI lacks authentication, so remote CI status could not be read; local release checks passed.
 
-Local browser access still reports disabled. JSDOM does not validate layout, CSP execution, browser storage behavior, assistive technology or WebGL. Earlier Phase 4 browser evidence does not validate all Phase 5/6 changes. The manual matrix in PHASE_5_ACCEPTANCE.md remains open.
+Browser access became available during final acceptance. Against the current local production build on port 5186 with deployment headers, an isolated “Phase 6 acceptance” workspace passed onboarding with labeled examples, language setting save, confirmed undo/redo and reload persistence. At 390 × 844, settings had no horizontal page overflow; drawer opening focused its close control, reverse Tab wrapped to the final profile control, and Escape restored focus to Open navigation. Light/dark settings and desktop WebGL office rendering were inspected. No console warnings/errors were captured in these flows.
+
+This is focused acceptance, not a full cross-browser, screen-reader or device certification. JSDOM adds regression coverage but does not replace real browser checks. The remaining manual matrix in PHASE_5_ACCEPTANCE.md stays open.
 
 ## Reproduce
 
