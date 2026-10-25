@@ -1,3 +1,11 @@
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+  lazy,
+} from "react";
 import { useRoute } from "./app/useRoute";
 import { defaultWorkbench, navigationTitle } from "./app/routes";
 import {
@@ -17,6 +25,9 @@ const DeliveryWorkspace = lazy(() => import("./DeliveryWorkspace"));
 const OperationsWorkspace = lazy(() => import("./OperationsWorkspace"));
 const CreativeStudio = lazy(() => import("./CreativeStudio"));
 const RuntimeSettings = lazy(() => import("./RuntimeSettings"));
+const ResearchWorkspace = lazy(
+  () => import("./domains/product/ResearchWorkspace"),
+);
 const KnowledgeHub = lazy(() => import("./KnowledgeHub"));
 const EngineeringDesk = lazy(() => import("./EngineeringDesk"));
 const DocumentsStudio = lazy(() => import("./DocumentsStudio"));
@@ -26,14 +37,7 @@ const Subscription = lazy(() =>
   import("./Administration").then((m) => ({ default: m.Subscription })),
 );
 import "./product.css";
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  Suspense,
-  lazy,
-} from "react";
+
 import { validateWorkspace } from "./storage";
 import { saveFile, downloadFile } from "./files";
 import { fields } from "./fields";
@@ -1835,6 +1839,8 @@ export default function App() {
       <CreativeStudio data={data} update={update} />
     ) : route === "models" ? (
       <RuntimeSettings data={data} update={update} route={route} />
+    ) : route === "research" ? (
+      <ResearchWorkspace data={data} update={update} />
     ) : route === "knowledge" ? (
       <KnowledgeHub data={data} update={update} />
     ) : route === "engineering" ? (

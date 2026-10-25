@@ -1,6 +1,6 @@
 # Frontend implementation status
 
-Updated 24 October 2026. Backend/database implementation remains explicitly gated on user approval.
+Updated 25 October 2026. Backend/database implementation remains explicitly gated on user approval.
 
 ## Implemented and usable locally
 
@@ -74,4 +74,8 @@ Typed identity challenge/invitation/recovery/session journeys, organization setu
 
 ## Phase 3 interface delivery
 
-Workflow dependency canvas/layout, snapshot comparisons, trigger configuration/evidence, recorded run graph/replay, checkpoint continuation drafts, partial-artifact labels, runtime command interfaces and incident associations are implemented. Import and persistence use the same strict trace validator. All 71 tests, type checking and the production build pass. Browser acceptance remains unverified because local browser use is disabled; parent-shell JSX migration and performance acceptance remain open. See PHASE_3_EXECUTION.md. Phase 4 awaits permission.
+Workflow dependency canvas/layout, snapshot comparisons, trigger configuration/evidence, recorded run graph/replay, checkpoint continuation drafts, partial-artifact labels, runtime command interfaces and incident associations are implemented. Import and persistence use the same strict trace validator. All 71 tests, type checking and the production build pass. Browser acceptance remains unverified because local browser use is disabled; parent-shell JSX migration and performance acceptance remain open. See PHASE_3_EXECUTION.md. Phase 4 was subsequently approved and implemented as documented below.
+
+## Phase 4 product workflow delivery
+
+Source ingestion and dedicated research briefs now connect exact evidence to reviewed document snapshots. Revision-bound engineering/procurement/creative/evaluation review and independent trial adjudication preserve local evidence and flag stale revisions. Repository inspection has a typed disconnected service boundary. Eight product screens and business/evaluation models are converted to strict TypeScript. See PHASE_4_PRODUCT_WORKFLOWS.md for scope and remaining architecture limitations. Phase 5 awaits permission.

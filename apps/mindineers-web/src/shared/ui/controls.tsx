@@ -28,6 +28,7 @@ type FieldProps = Omit<
   onChange: (value: string) => void;
   type?: string;
   options?: readonly string[];
+  rows?: number;
 };
 export function Field({
   label,
@@ -35,6 +36,7 @@ export function Field({
   onChange,
   type = "text",
   options,
+  rows = 4,
   ...rest
 }: FieldProps) {
   const {
@@ -82,7 +84,7 @@ export function Field({
           {...(autoComplete === undefined ? {} : { autoComplete })}
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          rows={4}
+          rows={rows}
         />
       ) : (
         <input

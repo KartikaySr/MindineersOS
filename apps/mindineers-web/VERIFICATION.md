@@ -50,3 +50,16 @@ Browser regression was attempted again but local browser use was disabled in Wor
 ## Phase 3 execution interfaces — 24 October
 
 Strict TypeScript checks, 71 tests and the production build pass. Seven execution tests and five additional server-render cases cover canvas/diff/trigger/run interfaces and malformed trace/acknowledgement rejection. The browser inventory again reports local browser use disabled; no interactive or mobile acceptance is claimed. Main and optional office chunks exceed 500 kB minified. See PHASE_3_EXECUTION.md for boundaries and remaining release gates.
+
+## Phase 4 product workflows — 25 October
+
+The recovered persistent checkout passes `npm run verify`: strict TypeScript checking, all 81 tests and the Vite production build. Ten new product-workflow tests cover bounded/deduplicated ingestion, exact source quotes, stale document handoff, sequential review guards, repository response validation, path traversal rejection and separate adjudication. Six additional server-render cases exercise the new interfaces and verify that Markdown HTML/script links remain inert.
+
+Focused interactive acceptance used an isolated local workspace named `Phase 4 acceptance · 25 Oct` with explicitly synthetic evidence:
+
+- Imported supplied text, reviewed an exact-quote research brief, created a separate document snapshot and restored the reviewed state after reload.
+- Prepared an engineering review, changed its branch to verify stale-state blocking, restored the exact revision and recorded local acceptance. No external operation was performed.
+- Fixed a Vite dev startup import-order error and a duplicate sibling React key that retained the old file editor after switching tabs; verified the file editor is absent on Checks after the fix.
+- Inspected Research at 390 × 844 in the light theme, verified no horizontal page overflow and keyboard focus movement, then reset the viewport and inspected the dark theme. Saved desktop/mobile evidence outside the repository in the task workspace.
+
+This is focused acceptance, not a whole-app end-to-end or screen-reader certification. Connected repository/CI, authentic reviewer identities, payments, external publication and secure blind evaluation remain unverified and disconnected. Local verification used Node 22.23.2; deployment configuration targets Node 24 and still needs hosted acceptance. Main (~517 kB) and optional Three.js office (~580 kB) chunks exceed the build warning threshold. Backend/database work and hosted deployment were not started.

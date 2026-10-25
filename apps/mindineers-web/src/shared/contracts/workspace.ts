@@ -1,3 +1,4 @@
+import type { ProductWorkflowCollections } from "../../domains/product/model";
 import type { ExecutionCollections } from "../../domains/execution/model";
 import type { PhaseTwoCollections } from "../../domains/administration/model";
 export interface Entity {
@@ -153,9 +154,7 @@ export type ImprovementRecord = Entity &
   > & {
     history: (Entity & TextFields<"at" | "actor" | "stage" | "evidence">)[];
   };
-export type SourceRecord = Entity &
-  TextFields<
-    | "kind"
+export type SourceRecord = Entity & { kind: "source" } & TextFields<
     | "name"
     | "url"
     | "excerpt"
@@ -165,16 +164,8 @@ export type SourceRecord = Entity &
     | "retrievedAt"
     | "notes"
   >;
-export type MemoryRecord = Entity &
-  TextFields<
-    | "kind"
-    | "name"
-    | "statement"
-    | "type"
-    | "scope"
-    | "evidence"
-    | "state"
-    | "expires"
+export type MemoryRecord = Entity & { kind: "memory" } & TextFields<
+    "name" | "statement" | "type" | "scope" | "evidence" | "state" | "expires"
   >;
 export type IncidentRecord = Entity &
   TextFields<
@@ -276,7 +267,8 @@ export type TraceRecord = Entity &
   };
 export interface ProductCollections
   extends PhaseTwoCollections,
-    ExecutionCollections {
+    ExecutionCollections,
+    ProductWorkflowCollections {
   documents: DocumentRecord[];
   ledger: LedgerRecord[];
   deliveries: DeliveryRecord[];

@@ -24,6 +24,12 @@ test("product screens render empty and restored data without requiring backend a
  import {LoadingState,ErrorState,SaveFailure,RouteBoundary} from '${src}shared/ui/AsyncState.tsx';
  import {ServiceError} from '${src}shared/services/errors.ts';
  import {Button,Field,Tabs} from '${src}shared/ui/controls.tsx';
+ import ResearchWorkspace from '${src}domains/product/ResearchWorkspace.tsx';
+ import Ingestion from '${src}domains/product/Ingestion.tsx';
+ import ReviewPanel from '${src}domains/product/ReviewPanel.tsx';
+ import Adjudication from '${src}domains/product/Adjudication.tsx';
+ import RepositoryInspector from '${src}domains/product/RepositoryInspector.tsx';
+ import MarkdownPreview from '${src}domains/product/MarkdownPreview.tsx';
  import WorkflowCanvas from '${src}domains/execution/WorkflowCanvas.tsx';
  import ConfigurationDiff from '${src}domains/execution/ConfigurationDiff.tsx';
  import Triggers from '${src}domains/execution/Triggers.tsx';
@@ -70,6 +76,12 @@ test("product screens render empty and restored data without requiring backend a
  validateProduct({traces:[exampleRun]});
  const screens=[Finance,Delivery,Operations,Documents,Decisions,Admin,Subscription,Knowledge,Engineering,Creative,Runtime,Runs,Help];
  export const entryResults=[
+ React.createElement(ResearchWorkspace,{data:base,update:()=>{}}),
+ React.createElement(Ingestion,{data:base,update:()=>{}}),
+ React.createElement(ReviewPanel,{data:base,update:()=>{},domain:'Engineering',entityId:'e',content:{}}),
+ React.createElement(Adjudication,{data:base,update:()=>{},evaluation:newEvaluation()}),
+ React.createElement(RepositoryInspector,{repository:'repo',refName:'main'}),
+ React.createElement(MarkdownPreview,{body:'# Safe heading\\n**bold** [safe](https://example.org) [unsafe](javascript:alert) <script>attack</script>'}),
  React.createElement(WorkflowCanvas,{graph:{nodes:[{id:'n',name:'Review',type:'Agent',timeout:60,retries:0}],edges:[]},selected:'n',select:()=>{},save:()=>{}}),
  React.createElement(ConfigurationDiff,{current:{fields:{name:'Changed'}},versions:[{id:'v',at:now,values:{name:'Original'}}]}),
  React.createElement(Triggers,{data:base,update:()=>{},workflowId:'w'}),
@@ -121,7 +133,10 @@ test("product screens render empty and restored data without requiring backend a
     });
     const { results, entryResults } = await import(pathToFileURL(outfile).href);
     assert.equal(results.length, 26);
-    assert.equal(entryResults.length, 47);
+    assert.equal(entryResults.length, 53);
+    assert.match(entryResults[5], /<strong>bold<\/strong>/);
+    assert.doesNotMatch(entryResults[5], /href="javascript:|<script>/);
+    assert.match(entryResults[5], /&lt;script&gt;/);
     for (const html of entryResults) assert.ok(html.length > 20);
     for (const html of results) {
       assert.ok(html.length > 300);

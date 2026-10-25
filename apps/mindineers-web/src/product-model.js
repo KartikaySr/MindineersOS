@@ -1,3 +1,4 @@
+import { productWorkflowValidators } from "./domains/product/model";
 import { validateTrace } from "./domains/execution/trace";
 import { executionValidators } from "./domains/execution/model.ts";
 import { phaseTwoValidators } from "./domains/administration/model.ts";
@@ -138,6 +139,7 @@ export function validateProduct(value) {
     fields(c, ["id", "quote", "text", "at"]) && typeof c.resolved === "boolean";
   const validators = {
     ...executionValidators,
+    ...productWorkflowValidators,
     ...phaseTwoValidators,
     ...businessValidators,
     ...experimentValidators,
@@ -343,6 +345,7 @@ export function validateProduct(value) {
         "contact",
       ]),
     sources: (s) =>
+      s?.kind === "source" &&
       fields(s, [
         "id",
         "kind",
@@ -356,6 +359,7 @@ export function validateProduct(value) {
         "notes",
       ]),
     memories: (m) =>
+      m?.kind === "memory" &&
       fields(m, [
         "id",
         "kind",

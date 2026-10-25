@@ -54,7 +54,7 @@ export function readRoute(hash: string): RouteLocation {
     : { kind: "missing", id: id.slice(0, 120) };
 }
 export function defaultWorkbench(id: string): boolean {
-  return ["workflows", "research", "teams", "tools"].includes(id);
+  return ["workflows", "teams", "tools"].includes(id);
 }
 export function routeHref(id: RouteId): string {
   return "#" + id;

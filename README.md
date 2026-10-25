@@ -13,7 +13,9 @@ Phase 1 adds a strict TypeScript foundation, typed local storage and service bou
 
 Phase 2 adds typed identity journeys and organization/access/session interfaces, integration lifecycle review requests, and subscription-management drafts. Services remain disconnected. See the [Phase 2 report](apps/mindineers-web/PHASE_2_ADMINISTRATION.md).
 
-Phase 3 adds workflow dependency visualization, version comparisons, trigger drafts/history, run replay and checkpoint planning, guarded runtime-control interfaces and strict trace validation. See the [Phase 3 report](apps/mindineers-web/PHASE_3_EXECUTION.md). Live services remain disconnected; Phase 4 awaits approval.
+Phase 3 adds workflow dependency visualization, version comparisons, trigger drafts/history, run replay and checkpoint planning, guarded runtime-control interfaces and strict trace validation. See the [Phase 3 report](apps/mindineers-web/PHASE_3_EXECUTION.md). Live services remain disconnected.
+
+Phase 4 adds source ingestion, research-to-document handoff, revision-bound product review, repository inspection interfaces and separate evaluation adjudication, with eight product screens migrated to strict TypeScript. See the [Phase 4 report](apps/mindineers-web/PHASE_4_PRODUCT_WORKFLOWS.md). Phase 5 awaits approval.
 
 The frontend supports local editing and optional example content. AI execution, authentication, integrations and cloud storage are not connected. This is not yet the complete full-scope product: see the [frontend status](apps/mindineers-web/FRONTEND_STATUS.md) and [deployment guide](apps/mindineers-web/README.md). The existing framework documentation below describes the inherited repository, not features verified in the new frontend.
 
