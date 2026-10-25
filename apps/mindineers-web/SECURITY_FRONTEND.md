@@ -12,6 +12,9 @@
 - External source URLs reject non-HTTP schemes, embedded credentials and control characters.
 - Incident and access-review records are explicitly labeled local planning/evidence records. They do not revoke access, contain systems, or substitute for trusted audit logs.
 
+- Workspace recovery keeps bounded snapshots in memory, rejects stale callbacks after workspace replacement or recovery, and pauses during unresolved storage conflicts. It is neither an authorization boundary nor an immutable audit trail. Restored local review records remain self-reported.
+- Optional record and workflow fields are validated before backup restoration to match the migrated typed editors. Local mandatory settings are visibly labeled policy drafts.
+
 ## Required before production use with private organizational data
 
 Authentication, session management, tenant isolation, server-side authorization, secret storage, authoritative audit events, retention enforcement, rate limits, encrypted synchronization and capability-scoped tool execution must be implemented and independently tested with the backend. Browser storage is accessible to the device/browser profile; it is not secure multi-tenant storage.

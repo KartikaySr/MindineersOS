@@ -203,7 +203,14 @@ export type DecisionSnapshot = TextFields<
   effects?: string;
   rollback?: string;
   expiresAt?: string;
-  decision?: unknown;
+  decision?: {
+    reviewer: string;
+    at: string;
+    version?: number;
+    payload?: string;
+    destination?: string;
+    scopes?: string[];
+  };
 };
 export type DecisionRecord = Entity &
   TextFields<
@@ -219,7 +226,14 @@ export type DecisionRecord = Entity &
     version: number;
     scopes: string[];
     previous: DecisionSnapshot[];
-    decision?: unknown;
+    decision?: {
+      reviewer: string;
+      at: string;
+      version?: number;
+      payload?: string;
+      destination?: string;
+      scopes?: string[];
+    };
     assignedReviewer?: string;
     snoozedUntil?: string;
     escalated?: boolean;
@@ -322,7 +336,22 @@ export interface ProductCollections
       | "permissions"
     > & { enabled: boolean })[];
 }
+export interface Profile {
+  email: string;
+  title: string;
+  bio: string;
+  pronouns: string;
+  timezone: string;
+  locale: string;
+  focus: string;
+  avatar: string;
+  useCase: string;
+}
 export interface WorkspaceSettings {
+  profile?: Partial<Profile>;
+  dashboard?: string[];
+  tour?: { step: number; state: string };
+  autonomy?: string;
   name: string;
   workspace: string;
   theme: "Light" | "Dark";
@@ -336,15 +365,64 @@ export interface LegacyRecord extends Entity {
   description: string;
   status: string;
   owner?: string;
+  progress?: number;
+  color?: string;
+  createdAt?: string;
+  mime?: string;
+  bytes?: number;
+  review?: string;
+  tags?: string;
+  priority?: string;
+  due?: string;
+  dependsOn?: string[];
+  criteria?: ChecklistItem[];
+  date?: string;
+  time?: string;
+  endTime?: string;
+  timezone?: string;
+  location?: string;
+  recurrence?: string;
+  notes?: string;
+  decisions?: string;
+  followUp?: string;
+  stage?: string;
+  company?: string;
+  email?: string;
+  value?: string;
+  currency?: string;
+  nextContact?: string;
+  source?: string;
+  activities?: (Entity & { at: string; text: string })[];
   [key: string]: unknown;
 }
+export interface Conversation extends Entity {
+  title: string;
+  agent: string;
+  context: string[];
+  createdAt: string;
+  messages: (Entity & { text: string; createdAt: string; pinned: boolean })[];
+}
+export interface AgentRecord extends Entity {
+  name: string;
+  role: string;
+  description: string;
+  symbol: string;
+  status: string;
+  color: string;
+}
 export interface Workspace {
+  suite?: import("../../domains/settings/workbench-contracts").Suite;
   settings: WorkspaceSettings;
   product?: Partial<ProductCollections>;
   projects: LegacyRecord[];
-  agents: Record<string, unknown>[];
+  agents: AgentRecord[];
+  conversations?: Conversation[];
+  connectionProfiles?: Record<
+    string,
+    { account: string; notes: string; region: string; scopes: string[] }
+  >;
   records: Record<string, LegacyRecord[]>;
-  messages: unknown[];
+  messages: (Entity & { role: "user" | "system"; text: string })[];
   posts: unknown[];
   approvals: unknown[];
   [key: string]: unknown;

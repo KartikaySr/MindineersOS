@@ -12,6 +12,17 @@ test("product screens render empty and restored data without requiring backend a
     const src = fileURLToPath(new URL("../src/", import.meta.url));
     const code = `
  import React from 'react';
+ import Office from '${src}Office.tsx';
+ import WorkspaceManager from '${src}WorkspaceManager.tsx';
+ import RecoveryPanel from '${src}domains/recovery/RecoveryPanel.tsx';
+ import {initialHistory} from '${src}domains/recovery/model.ts';
+ import Artifacts from '${src}Artifacts.tsx';
+ import CalendarWorkspace from '${src}CalendarWorkspace.tsx';
+ import Customers from '${src}Customers.tsx';
+ import Conversations from '${src}Conversations.tsx';
+ import MissionPlanner from '${src}MissionPlanner.tsx';
+ import Connections from '${src}Connections.tsx';
+ import Workbench from '${src}Workbench.tsx';
  import {renderToString} from 'react-dom/server';
  import Documents from '${src}DocumentsStudio.jsx';
  import Decisions from '${src}Decisions.jsx';
@@ -60,7 +71,7 @@ test("product screens render empty and restored data without requiring backend a
  import ReviewRouting from '${src}ReviewRouting.jsx';
  import {validateProduct} from '${src}product-model.js';
  const now=new Date().toISOString();
- const base={settings:{name:'Test',budget:50},projects:[],agents:[],records:{documents:[],missions:[]},product:{}};
+ const base={messages:[],posts:[],approvals:[],settings:{name:'Test',budget:50},projects:[],agents:[],records:{documents:[],missions:[]},product:{}};
  const populated={...base,product:{
  incidents:[newIncident()],evaluations:[newEvaluation()],scenarios:[newScenario()],improvements:[newImprovement()],ledger:[newLedger()],deliveries:[newDelivery()],procedures:[newProcedure()],
  documents:[{id:'d',name:'Doc',kind:'Document',body:'# Hello',rows:[],slides:[],comments:[],versions:[],updatedAt:now}],
@@ -75,7 +86,7 @@ test("product screens render empty and restored data without requiring backend a
  validateProduct(populated.product);
  validateTrace(exampleRun);
  validateProduct({traces:[exampleRun]});
- const screens=[Finance,Delivery,Operations,Documents,Decisions,Admin,Subscription,Knowledge,Engineering,Creative,Runtime,Runs,Help];
+ const screens=[Artifacts,CalendarWorkspace,Customers,Conversations,MissionPlanner,Connections,Finance,Delivery,Operations,Documents,Decisions,Admin,Subscription,Knowledge,Engineering,Creative,Runtime,Runs,Help];
  export const entryResults=[
  React.createElement(ResearchWorkspace,{data:base,update:()=>{}}),
  React.createElement(Ingestion,{data:base,update:()=>{}}),
@@ -115,6 +126,10 @@ test("product screens render empty and restored data without requiring backend a
  React.createElement(ScopeSettings,{suite:{settings:{}},change:()=>{},entities:{}}),
  React.createElement(ScopeSettings,{suite:{settings:{Organization:{language:'French','mandatory:language':'true'},Workspace:{language:'English'}}},change:()=>{},entities:{Agent:[{id:'a',name:'Agent A'}]}}),
  React.createElement(Onboarding,{settings:{name:'You',workspace:'Test',theme:'Light',motion:false,budget:50},finish:()=>{}})
+ ,React.createElement(Office,{agents:[],onSelect:()=>{},reduced:true}),
+ React.createElement(WorkspaceManager,{index:{active:"test",items:[{id:"test",name:"Test"}]},activeName:"Test",onSwitch:()=>{},onCreate:()=>{},onClose:()=>{}}),
+ React.createElement(RecoveryPanel,{history:initialHistory(base),restore:()=>{},blocked:false}),
+ ...[base,populated].flatMap(data=>["workflows","teams","tools","settings","projects","agents"].map(route=>React.createElement(Workbench,{data,route,update:()=>{}})))
  ].map(renderToString);
  export const results=[base,populated].flatMap(data=>screens.map(Component=>renderToString(React.createElement(Component,{data,update:()=>{}}))));
  `;
@@ -135,8 +150,8 @@ test("product screens render empty and restored data without requiring backend a
       logLevel: "silent",
     });
     const { results, entryResults } = await import(pathToFileURL(outfile).href);
-    assert.equal(results.length, 26);
-    assert.equal(entryResults.length, 55);
+    assert.equal(results.length, 38);
+    assert.equal(entryResults.length, 70);
     assert.match(entryResults[5], /<strong>bold<\/strong>/);
     assert.doesNotMatch(entryResults[5], /href="javascript:|<script>/);
     assert.match(entryResults[5], /&lt;script&gt;/);

@@ -6,6 +6,18 @@ export interface GraphNode {
   timeout: number;
   retries: number;
   position?: { x: number; y: number };
+  inputPorts?: { name: string; type: string }[];
+  outputPorts?: { name: string; type: string }[];
+  inputSchema?: string;
+  outputSchema?: string;
+  inputType?: string;
+  outputType?: string;
+  failureMode?: string;
+  idempotencyKey?: string;
+  condition?: string;
+  concurrency?: number;
+  mergePolicy?: string;
+  subflow?: Graph;
   [key: string]: unknown;
 }
 export interface GraphEdge {

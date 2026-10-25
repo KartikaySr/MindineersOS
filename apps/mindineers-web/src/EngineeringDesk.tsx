@@ -98,7 +98,11 @@ export default function EngineeringDesk({
               onChange={setTab}
             />
             {tab === "Files" ? (
-              <FileDiff key={"files-" + change.id} change={change} patch={patch} />
+              <FileDiff
+                key={"files-" + change.id}
+                change={change}
+                patch={patch}
+              />
             ) : tab === "Repository" ? (
               <RepositoryInspector
                 repository={change.repository}

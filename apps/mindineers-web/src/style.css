@@ -2380,3 +2380,108 @@ input[type="checkbox"] {
 [data-theme="dark"] .text-button {
   color: #a5b197;
 }
+
+/* Shared recovery and keyboard access across all workspace routes. */
+.recovery-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.recovery-controls .button {
+  min-height: 36px;
+}
+.wb-policy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.wb-tabs button[aria-pressed="true"],
+.wb-records button[aria-pressed="true"] {
+  background: var(--accent);
+  color: #14281b;
+  font-weight: 700;
+}
+@media (max-width: 740px) {
+  .recovery-controls .button {
+    flex: 1 1 140px;
+    min-height: 44px;
+  }
+  .wb-body,
+  .wb-detail,
+  .product-detail,
+  .product-page,
+  .exp-panel {
+    min-width: 0;
+  }
+  .wb-policy .button {
+    white-space: normal;
+  }
+  .wb-tabs,
+  .product-tabs {
+    flex-wrap: wrap;
+  }
+  .product-code {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .main input,
+  .main select,
+  .main textarea {
+    max-width: 100%;
+  }
+}
+@media (forced-colors: active) {
+  button[aria-pressed="true"] {
+    outline: 2px solid Highlight;
+  }
+  :focus-visible {
+    outline: 3px solid Highlight !important;
+  }
+}
+
+.accessible-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+label.button:focus-within {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wb-policy > .product-field,
+.wb-policy > small,
+.wb-policy > p,
+.wb-policy > label {
+  grid-column: 1 / -1;
+}
+.wb-policy small {
+  opacity: 1;
+  color: var(--muted);
+}
+.wb-policy > label:not(.product-field) {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.wb-policy input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  flex: 0 0 18px;
+  accent-color: #427757;
+}

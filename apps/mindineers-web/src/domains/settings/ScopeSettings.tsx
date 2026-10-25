@@ -1,4 +1,5 @@
-import { useState } from "react";
+import type { Suite } from "./workbench-contracts";
+import { useState, useId } from "react";
 import { settingGroups } from "../../workbench-schema";
 import { Button, Field } from "../../shared/ui/controls";
 import {
@@ -8,9 +9,9 @@ import {
   setOverride,
   undoOverride,
 } from "./model";
-import type { Settings, Layer } from "./model";
+import type { Layer } from "./model";
 type Entity = { id: string; name?: string; title?: string };
-type Suite = { settings?: Settings; [key: string]: unknown };
+
 type Undo = {
   target: string;
   key: string;
@@ -29,9 +30,14 @@ export default function ScopeSettings({
   const scopes = ["Organization", "Workspace", "Project", "Agent", "Run"];
   const [scope, setScope] = useState("Workspace"),
     [group, setGroup] = useState("Profile");
-  const [selection, setSelection] = useState<Record<string, string>>({});
+  const [savedSelection, setSelection] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState(""),
     [undo, setUndo] = useState<Undo | null>(null);
+  const selection = Object.fromEntries(
+    Object.entries(savedSelection).filter(([name, id]) =>
+      (entities[name] || []).some((entity) => entity.id === id),
+    ),
+  );
   const settings = suite.settings || {};
   const groups = settingGroups as Record<string, string[][]>;
   const target = selection[scope] ? entityKey(scope, selection[scope]!) : scope;
@@ -87,7 +93,11 @@ export default function ScopeSettings({
           <Button
             key={name}
             aria-pressed={scope === name}
-            onClick={() => setScope(name)}
+            onClick={() => {
+              setScope(name);
+              setUndo(null);
+              setNotice("");
+            }}
           >
             {name}
           </Button>
@@ -192,6 +202,7 @@ export default function ScopeSettings({
                     value={settings[target]?.[key] ?? resolved.value}
                     locked={inherited.locked}
                     source={resolved.source}
+                    effectiveValue={resolved.value}
                     conflicts={resolved.conflicts}
                     mandatory={
                       settings[target]?.[`mandatory:${key}`] === "true"
@@ -218,6 +229,7 @@ function SettingRow({
   value,
   locked,
   source,
+  effectiveValue,
   conflicts,
   mandatory,
   overridden,
@@ -230,6 +242,7 @@ function SettingRow({
   value: string;
   locked: boolean;
   source: string;
+  effectiveValue: string;
   conflicts: string[];
   mandatory: boolean;
   overridden: boolean;
@@ -243,6 +256,7 @@ function SettingRow({
     setLast(value);
     setDraft(value);
   }
+  const fieldId = useId();
   const error = settingError(settingKey, draft);
   return (
     <div className="wb-policy">
@@ -253,10 +267,15 @@ function SettingRow({
         maxLength={200}
         onChange={setDraft}
         aria-invalid={Boolean(error)}
+        aria-describedby={`${fieldId}-hint${error ? ` ${fieldId}-error` : ""}`}
       />
-      {error && <small role="alert">{error}</small>}
-      <small>
-        Effective source: {source}
+      {error && (
+        <small id={`${fieldId}-error`} role="alert">
+          {error}
+        </small>
+      )}
+      <small id={`${fieldId}-hint`}>
+        Effective value: {effectiveValue} · Source: {source}
         {locked ? " · Mandatory upstream rule" : ""}
       </small>
       {conflicts.length > 0 && (

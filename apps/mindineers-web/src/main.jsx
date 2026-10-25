@@ -1,3 +1,6 @@
+import { useNavigationFocus } from "./shared/ui/useNavigationFocus";
+import { useWorkspaceHistory } from "./domains/recovery/useWorkspaceHistory";
+import RecoveryPanel from "./domains/recovery/RecoveryPanel";
 import React, {
   useState,
   useEffect,
@@ -155,8 +158,14 @@ export default function App() {
     [recovery, setRecovery] = useState(initialWorkspace.error),
     [recoveryRaw, setRecoveryRaw] = useState(initialWorkspace.raw),
     [storageConflict, setStorageConflict] = useState(null);
-  const [data, setData] = useState(() => initialWorkspace.data || fresh()),
-    [query, setQuery] = useState(""),
+  const {
+    data,
+    replace: setData,
+    update,
+    history,
+    restore,
+  } = useWorkspaceHistory(() => initialWorkspace.data || fresh());
+  const [query, setQuery] = useState(""),
     [searchOpen, setSearchOpen] = useState(false),
     [modal, setModal] = useState(null),
     [toast, setToast] = useState(""),
@@ -171,6 +180,7 @@ export default function App() {
     [narrow, setNarrow] = useState(
       () => matchMedia("(max-width:740px)").matches,
     );
+  useNavigationFocus(narrow && mobile, route);
   useEffect(() => {
     const media = matchMedia("(max-width:740px)");
     const change = () => setNarrow(media.matches);
@@ -264,8 +274,6 @@ export default function App() {
     setTourOpen(false);
     document.title = navigationTitle(route, current[1]);
   }, [route, workspaceIndex.active]);
-  const update = (fn) =>
-    setData((d) => (typeof fn === "function" ? fn(d) : { ...d, ...fn }));
   const selectWorkspace = (id) => {
     try {
       if (!recovery && !storageConflict)
@@ -1700,7 +1708,7 @@ export default function App() {
               <input
                 type="file"
                 accept="application/json"
-                hidden
+                className="accessible-file-input"
                 onChange={async (e) => {
                   const file = e.target.files[0];
                   if (!file) return;
@@ -2024,9 +2032,16 @@ export default function App() {
         />
       )}
       <aside
+        id="workspace-navigation"
+        aria-label="Workspace navigation"
         inert={narrow && !mobile}
         className={"sidebar " + (mobile ? "open" : "")}
       >
+        {narrow && mobile && (
+          <button className="button" onClick={() => setMobile(false)}>
+            Close navigation
+          </button>
+        )}
         <a href="#home" className="brand">
           <span className="brand-icon">m✳</span>
           <span>
@@ -2056,6 +2071,7 @@ export default function App() {
               key={id}
               href={"#" + id}
               className={route === id ? "selected" : ""}
+              aria-current={route === id ? "page" : undefined}
             >
               <Icon name={icon} />
               <span>{label}</span>
@@ -2081,12 +2097,17 @@ export default function App() {
               key={id}
               href={"#" + id}
               className={route === id ? "selected" : ""}
+              aria-current={route === id ? "page" : undefined}
             >
               <Icon name={icon} />
               <span>{label}</span>
             </a>
           ))}
-          <button className="more-nav" onClick={() => setMore(!more)}>
+          <button
+            className="more-nav"
+            aria-expanded={more}
+            onClick={() => setMore(!more)}
+          >
             <Icon name="Grid2X2" />
             <span>All apps</span>
             <Icon name={more ? "ChevronUp" : "ChevronDown"} size={15} />
@@ -2098,6 +2119,7 @@ export default function App() {
                   key={id}
                   href={"#" + id}
                   className={route === id ? "selected" : ""}
+                  aria-current={route === id ? "page" : undefined}
                 >
                   <Icon name={icon} size={16} />
                   {label}
@@ -2149,6 +2171,8 @@ export default function App() {
             <button
               className="icon-button mobile-menu"
               aria-label="Open navigation"
+              aria-expanded={mobile}
+              aria-controls="workspace-navigation"
               onClick={() => setMobile(true)}
             >
               <Icon name="Menu" />
@@ -2207,6 +2231,11 @@ export default function App() {
           tabIndex={-1}
           className={route === "chat" ? "main chat-main" : "main"}
         >
+          <RecoveryPanel
+            history={history}
+            restore={restore}
+            blocked={!!recovery || !!storageConflict}
+          />
           {saveFailed && (
             <SaveFailure
               retry={() => setSaveAttempt((n) => n + 1)}
@@ -2260,19 +2289,23 @@ export default function App() {
             <div className="workspace-mode" aria-label="Workspace mode">
               <button
                 className={!workbenchMode ? "active" : ""}
+                aria-pressed={!workbenchMode}
                 onClick={() => setWorkbenchMode(false)}
               >
                 Overview
               </button>
               <button
                 className={workbenchMode ? "active" : ""}
+                aria-pressed={workbenchMode}
                 onClick={() => setWorkbenchMode(true)}
               >
                 Details & tools
               </button>
             </div>
           )}
-          <RouteBoundary key={workspaceIndex.active + ":" + route}>
+          <RouteBoundary
+            key={workspaceIndex.active + ":" + route + ":" + history.restores}
+          >
             {workbenchMode ? (
               <Workbench
                 key={route}
@@ -2292,6 +2325,7 @@ export default function App() {
       </div>
       <button
         className="core-launcher"
+        inert={narrow && mobile}
         onClick={() => setAssistant({ prompt: "" })}
         aria-label="Open Mindineers Core guide"
       >
@@ -2417,6 +2451,7 @@ export default function App() {
         <Modal
           key={modal.type + (modal.id || modal.record?.id || "")}
           modal={modal}
+          replaceWorkspace={setData}
           data={data}
           update={update}
           saveRecord={saveRecord}
@@ -2468,6 +2503,7 @@ function Dialog({ title, children, onClose }) {
   );
 }
 function Modal({
+  replaceWorkspace,
   modal: m,
   data,
   update,
@@ -2562,7 +2598,7 @@ function Modal({
           <Button
             kind="dark"
             onClick={() => {
-              update(() => ({ ...fresh(), ...m.value }));
+              replaceWorkspace(() => ({ ...fresh(), ...m.value }));
               close();
               notify("Workspace imported");
             }}
@@ -2594,11 +2630,8 @@ function Modal({
           <Button
             kind="danger"
             onClick={() => {
-              update(
-                m.type === "reset"
-                  ? () => fresh()
-                  : (d) => ({ ...d, messages: [] }),
-              );
+              if (m.type === "reset") replaceWorkspace(fresh());
+              else update((d) => ({ ...d, messages: [] }));
               close();
             }}
           >

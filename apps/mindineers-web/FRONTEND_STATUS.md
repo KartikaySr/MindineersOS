@@ -46,7 +46,7 @@ Authentication/session recovery, organization permissions, agent/model responses
 
 These are real frontend gaps, not tasks that can all be solved by merely adding a backend:
 
-- Finish strict TypeScript conversion of legacy domain JSX and runtime validators; generate API contracts once the backend interface is agreed. Phase 1 adds a strict typed foundation, workspace contracts, repository/transport adapters, routing and shared UI. See PHASE_1_FOUNDATION.md for the explicit migration boundary.
+- Dedicated domain screens are now strict TypeScript. Finish the main.jsx shell and remaining runtime-validator audit; generate API contracts once the backend interface is agreed. Phase 1 adds a strict typed foundation, workspace contracts, repository/transport adapters, routing and shared UI. See PHASE_1_FOUNDATION.md for the explicit migration boundary.
 - Cloud organization creation, connected identity challenge/error/session flows, and effective-permission interfaces. Local workspace switching and account-entry availability screens are implemented; these are not working cloud authentication.
 - Runtime payload validation against schemas, conditional/parallel runtime semantics, trigger history, visual edge routing and configuration diff UI. Draft-07 schema structure and local-reference checks are implemented; formats and schema-to-schema assignability are not fully validated. Named ports, endpoint/type checks, nested subflow editing (four levels), schema syntax and concurrency validation are implemented.
 - Server-connected run DAG, partial artifacts, acknowledged controls, replay, checkpoints and incident correlation.
@@ -58,8 +58,8 @@ These are real frontend gaps, not tasks that can all be solved by merely adding 
 - Executable scenario environments, independent/blind evaluation adjudication, and connected improvement promotion/rollback acknowledgements. Local comparisons, descriptive evaluation statistics and evidence-gated review records are implemented.
 - Detailed connector/device lifecycle and catalog install/update/revocation. Model/device configuration profiles are implemented; health/resource inspection requires runtime contracts.
 - Connected billing/subscription administration, authoritative effective permissions and incident telemetry. Local access-review and incident-response interfaces are implemented.
-- Per-entity settings overrides and mandatory-policy conflict resolution; currently one draft per scope level.
-- Collaborative conflict resolution, undo/restore for all actions, offline synchronization, richer loading/error/denied/stale states.
+- Per-entity overrides and mandatory-policy conflict previews are implemented. Authoritative entity relationships and enforcement require backend integration.
+- Local workspace undo/redo and stale-save isolation are implemented. Collaborative conflict resolution, externally executed action recovery and offline synchronization still need connected contracts.
 - Comprehensive mobile/keyboard/screen-reader regression coverage and performance budgets.
 
 No claim of complete full-scope or production readiness should be made until these remaining frontend requirements are implemented and verified. Current mock/example content is presentation data, not evidence of executed agents or live integrations.
@@ -78,4 +78,8 @@ Workflow dependency canvas/layout, snapshot comparisons, trigger configuration/e
 
 ## Phase 4 product workflow delivery
 
-Source ingestion and dedicated research briefs now connect exact evidence to reviewed document snapshots. Revision-bound engineering/procurement/creative/evaluation review and independent trial adjudication preserve local evidence and flag stale revisions. Repository inspection has a typed disconnected service boundary. Eight product screens and business/evaluation models are converted to strict TypeScript. See PHASE_4_PRODUCT_WORKFLOWS.md for scope and remaining architecture limitations. Phase 5 awaits permission.
+Source ingestion and dedicated research briefs now connect exact evidence to reviewed document snapshots. Revision-bound engineering/procurement/creative/evaluation review and independent trial adjudication preserve local evidence and flag stale revisions. Repository inspection has a typed disconnected service boundary. Eight product screens and business/evaluation models are converted to strict TypeScript. See PHASE_4_PRODUCT_WORKFLOWS.md for scope and remaining architecture limitations. Phase 5 implementation is documented below.
+
+## Phase 5 delivery
+
+Settings, bounded workspace recovery, mobile/keyboard interaction improvements and the remaining 25 dedicated TSX screen migrations are implemented. Strict checks, 94 tests and the production build pass. Server rendering covers 38 domain and 70 entry/component cases. Browser acceptance remains pending because local browser use stayed disabled. See PHASE_5_SETTINGS.md and PHASE_5_ACCEPTANCE.md. The main shell and some legacy helpers remain JavaScript; Phase 6 release acceptance has not started.

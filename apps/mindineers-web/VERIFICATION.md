@@ -63,3 +63,9 @@ Focused interactive acceptance used an isolated local workspace named `Phase 4 a
 - Inspected Research at 390 × 844 in the light theme, verified no horizontal page overflow and keyboard focus movement, then reset the viewport and inspected the dark theme. Saved desktop/mobile evidence outside the repository in the task workspace.
 
 This is focused acceptance, not a whole-app end-to-end or screen-reader certification. Connected repository/CI, authentic reviewer identities, payments, external publication and secure blind evaluation remain unverified and disconnected. Local verification used Node 22.23.2; deployment configuration targets Node 24 and still needs hosted acceptance. Main (~517 kB) and optional Three.js office (~580 kB) chunks exceed the build warning threshold. Backend/database work and hosted deployment were not started.
+
+## Phase 5 — 25 October 2026
+
+`npm run verify`: strict typecheck, 94 tests, production build pass. Expanded server rendering covers 38 domain cases and 70 entry/component cases. Added tests check workspace undo/redo, same-field typing grouping, separate action history, stale callbacks after restore/workspace replacement, history bounds and invalid restored domain fields. Matching Three.js type definitions were installed with lifecycle scripts disabled; npm reported zero vulnerabilities at install time.
+
+Interactive browser access was attempted repeatedly after the user offered to enable it. The tool still returned “Local browser use is disabled in Work settings.” The desktop/mobile, focus, screen-reader and WebGL matrix in PHASE_5_ACCEPTANCE.md is therefore pending. Earlier Phase 4 browser evidence does not validate these Phase 5 changes. Main/office bundle warnings remain. Node 22.23.2 was used locally; Node 24 and hosted deployment remain unverified.

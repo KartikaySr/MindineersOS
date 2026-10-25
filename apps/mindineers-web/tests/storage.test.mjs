@@ -84,3 +84,58 @@ test("extended workspace survives backup validation", () => {
     "Ship",
   );
 });
+
+test("restored domain text fields cannot smuggle objects into editors", () => {
+  for (const field of [
+    "email",
+    "date",
+    "time",
+    "due",
+    "tags",
+    "stage",
+    "notes",
+  ]) {
+    const value = structuredClone(fixture());
+    value.records.customers = [
+      {
+        id: "c",
+        name: "Contact",
+        description: "",
+        status: "Lead",
+        [field]: { bad: true },
+      },
+    ];
+    assert.throws(() => validateWorkspace(value), /records/);
+  }
+});
+test("restored workflow optional fields must match the typed editor contract", () => {
+  const value = structuredClone(fixture());
+  value.suite = {
+    settings: {},
+    localRecords: {},
+    runs: [],
+    details: {
+      w: {
+        values: {},
+        history: [],
+        checklist: [],
+        comments: [],
+        links: [],
+        graph: {
+          nodes: [
+            {
+              id: "n",
+              name: "Node",
+              type: "Agent",
+              timeout: 60,
+              retries: 0,
+              inputSchema: { bad: true },
+            },
+          ],
+          edges: [],
+        },
+      },
+    },
+  };
+  assert.throws(() => validateWorkspace(value), /graph/);
+});

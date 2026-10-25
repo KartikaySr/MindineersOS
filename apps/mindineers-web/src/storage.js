@@ -51,7 +51,30 @@ export function validateWorkspace(v) {
     text(r.name, 300) &&
     text(r.description) &&
     text(r.status, 100) &&
-    (!r.owner || text(r.owner, 120));
+    (r.owner === undefined || text(r.owner, 120)) &&
+    [
+      "createdAt",
+      "review",
+      "tags",
+      "priority",
+      "due",
+      "date",
+      "time",
+      "endTime",
+      "timezone",
+      "location",
+      "recurrence",
+      "notes",
+      "decisions",
+      "followUp",
+      "stage",
+      "company",
+      "email",
+      "value",
+      "currency",
+      "nextContact",
+      "source",
+    ].every((key) => r[key] === undefined || text(r[key]));
   if (
     !rows(
       v.projects,
@@ -187,7 +210,13 @@ export function validateWorkspace(v) {
       !object(s) ||
       !object(s.details) ||
       !object(s.settings) ||
-      !object(s.localRecords)
+      !object(s.localRecords) ||
+      (s.runs !== undefined &&
+        !rows(
+          s.runs,
+          (r) =>
+            object(r) && text(r.id) && (r.name === undefined || text(r.name)),
+        ))
     )
       throw new Error("Invalid extended workspace");
     const values = (v) =>
@@ -223,6 +252,17 @@ export function validateWorkspace(v) {
               n.position.x <= 100000 &&
               n.position.y >= 0 &&
               n.position.y <= 100000)) &&
+          [
+            "inputSchema",
+            "outputSchema",
+            "inputType",
+            "outputType",
+            "failureMode",
+            "idempotencyKey",
+            "condition",
+            "mergePolicy",
+          ].every((key) => n[key] === undefined || text(n[key])) &&
+          (n.concurrency === undefined || Number.isFinite(n.concurrency)) &&
           ports(n.inputPorts) &&
           ports(n.outputPorts) &&
           (n.subflow === undefined || graph(n.subflow, depth + 1)),

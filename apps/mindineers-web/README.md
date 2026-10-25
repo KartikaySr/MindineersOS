@@ -107,12 +107,14 @@ Account entry now has a typed, service-ready identity journey. Security adds Org
 
 ## Phase 3 multi-agent environment
 
-Workflow Studio adds a visual dependency canvas, configuration comparisons and trigger drafts with supplied history. Runs adds read-only dependency inspection, event replay, checkpoint continuation plans, partial-artifact labels, incident associations and service-ready runtime controls. Strict trace validation protects import and restore boundaries. Execution remains disconnected; local plans and evidence never claim live agent actions. See [Phase 3 report](PHASE_3_EXECUTION.md). Phase 4 requires approval.
+Workflow Studio adds a visual dependency canvas, configuration comparisons and trigger drafts with supplied history. Runs adds read-only dependency inspection, event replay, checkpoint continuation plans, partial-artifact labels, incident associations and service-ready runtime controls. Strict trace validation protects import and restore boundaries. Execution remains disconnected; local plans and evidence never claim live agent actions. See [Phase 3 report](PHASE_3_EXECUTION.md). Phase 4 was subsequently delivered.
 
 ## Phase 4 product workflows
 
-Knowledge ingestion → research brief → reviewed document now forms a usable local workflow. Exact source evidence, contradictory claims, revision-bound review, release-readiness checks and separate evaluation adjudication preserve context without claiming backend execution. Eight product screens and the business/evaluation models now use strict TypeScript. See [Phase 4 delivery](PHASE_4_PRODUCT_WORKFLOWS.md) and [verification](VERIFICATION.md). Phase 5 requires approval.
+Knowledge ingestion → research brief → reviewed document now forms a usable local workflow. Exact source evidence, contradictory claims, revision-bound review, release-readiness checks and separate evaluation adjudication preserve context without claiming backend execution. Eight product screens and the business/evaluation models now use strict TypeScript. See [Phase 4 delivery](PHASE_4_PRODUCT_WORKFLOWS.md) and [verification](VERIFICATION.md). Phase 5 implementation is delivered below.
 
-## Phase 5 progress
+## Phase 5 settings, recovery and polish
 
-The settings policy designer now supports separate project, agent and run drafts, explicit preview hierarchy selections, mandatory-rule conflict reporting, validated values, inheritance reset and guarded single-edit undo. These are local policy drafts; enforcement requires the backend. Phase 5 remains in progress; see [remaining work](PHASE_5_SETTINGS.md).
+Settings support independent entity overrides and mandatory-rule conflict previews. Shared, bounded workspace undo/redo protects against stale saves and resets editors on restored data. The remaining 25 dedicated screen implementations are strict TypeScript, including the workflow studio, personal experience and 3D office. Mobile focus handling, selected-state announcements and keyboard import access have been improved.
+
+Strict checks, 94 tests and the production build pass. Browser acceptance remains pending because local browser use is disabled. See [Phase 5 delivery](PHASE_5_SETTINGS.md) and the [acceptance checklist](PHASE_5_ACCEPTANCE.md). Phase 6 release work requires explicit approval; backend/database work remains separately gated.
