@@ -53,3 +53,11 @@ Current changes are local until committed, pushed and verified on the deployed s
 - Connected-resource service replacement resets stale account state; refreshing cancels unsubmitted reviews while preserving attempted request identities and their reviewed effect. Concurrent duplicate command submissions are blocked.
 - Latest release verification: 111 passing tests, 106 strict TS/TSX files, 53 compatibility facades, zero unchecked authored JavaScript, production build and asset/header checks passed. The schema-validator declaration is explicitly tracked so clean deployments can typecheck.
 - Full architectural parity remains open. Missing or unverified items include advanced mission split/merge and workload journeys, voice/media collaboration, complete connected-state acceptance, and mobile/screen-reader/performance verification. This revision must not be described as the completed original architecture.
+
+## Mission plan restructuring — 30 October 2026
+
+Implemented named baseline snapshots with field-level comparison, 2–10-part splits, 2–10-mission merges, explicit scope-change reasons, actor/time attribution and before/after history. Split parents retain acceptance criteria and wait on all new parts. Merges redirect mission prerequisites, reopen acceptance criteria and preserve source snapshots. Affected downstream missions return to Draft. Cycle-producing merges, completed-source changes and stale reviews are rejected. Workspace import validates bounded plan history.
+
+Find these controls in Missions → Overview → Plan baselines, split and merge. These are local planning interactions: remote approvals are not revoked and external artifacts are not automatically revalidated. Merged source references outside mission dependencies require manual review. Local baselines are comparison snapshots, not tamper-proof server records. History is bounded to 30 baselines and 100 restructuring operations; existing workspace export and undo remain available.
+
+Verification: 116 tests pass, including DOM interaction coverage for baseline capture and split confirmation; strict TypeScript, production build and release gates pass. Browser use still reports disabled, so visual/mobile acceptance remains open. Voice/media collaboration and comprehensive architecture coverage remain outstanding; the frontend is not yet certified complete.

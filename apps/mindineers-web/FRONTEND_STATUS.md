@@ -113,3 +113,11 @@ The type audit identifies 81 TypeScript files, 41 compatibility facades, 12 hand
 Mission planning now includes owner workload and accessible dependency views. Counts use saved records; blocked calculations resolve dependencies against the complete workspace even when the display is filtered. Missing prerequisites remain visible. Advanced split/merge, immutable plan baselines and a spatial dependency graph remain separate acceptance gaps.
 
 Release checks pass 112 tests and the production build (107 strict TS/TSX files, 53 compatibility facades, no unchecked authored JavaScript; initial JS 137.2 kB gzip). The preceding restoration commit `6fc345c` was pushed to GitHub. Hosted HTML/assets/security headers passed verification, but its manifest differed from the local release; deployment of this revision is not yet confirmed. Browser access remains unavailable for the latest visual checks.
+
+## Mission plan restructuring — 30 October 2026
+
+Implemented named baseline snapshots with field-level comparison, 2–10-part splits, 2–10-mission merges, explicit scope-change reasons, actor/time attribution and before/after history. Split parents retain acceptance criteria and wait on all new parts. Merges redirect mission prerequisites, reopen acceptance criteria and preserve source snapshots. Affected downstream missions return to Draft. Cycle-producing merges, completed-source changes and stale reviews are rejected. Workspace import validates bounded plan history.
+
+Find these controls in Missions → Overview → Plan baselines, split and merge. These are local planning interactions: remote approvals are not revoked and external artifacts are not automatically revalidated. Merged source references outside mission dependencies require manual review. Local baselines are comparison snapshots, not tamper-proof server records. History is bounded to 30 baselines and 100 restructuring operations; existing workspace export and undo remain available.
+
+Verification: 116 tests pass, including DOM interaction coverage for baseline capture and split confirmation; strict TypeScript, production build and release gates pass. Browser use still reports disabled, so visual/mobile acceptance remains open. Voice/media collaboration and comprehensive architecture coverage remain outstanding; the frontend is not yet certified complete.

@@ -132,3 +132,5 @@ The preserved [original frontend architecture](docs/ORIGINAL_FRONTEND_ARCHITECTU
 The 29 October restoration release adds persistent conversation composer drafts, document templates and outline navigation, attributed comments, accessible sheet chart previews, and reviewed lifecycle boundaries for catalog and improvement records. Its 111 automated tests and production build pass. See the acceptance document for remaining original-scope requirements and visual verification gaps.
 
 Mission planning also includes owner workload and accessible dependency inspection, backed by 112 passing release tests as of 29 October. Counts are based on saved missions and are not runtime utilization estimates.
+
+Mission planning now supports named baseline comparisons and reviewed split/merge operations with dependency rewiring, downstream revalidation and bounded local history. The 30 October release checks pass 116 tests. Remote approval revocation remains a backend integration requirement.

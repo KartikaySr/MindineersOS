@@ -1,3 +1,4 @@
+import {validatePlanning} from "./domains/planning/model";
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 const oneOf = (value: unknown, choices: string[]): boolean => typeof value === "string" && choices.includes(value);
 import { validHttpUrl } from "./workbench-model.js";
@@ -24,6 +25,7 @@ export function validateWorkspace(v: unknown) {
   )
     throw new Error("Invalid workspace preferences");
   validateExperience(v.settings);
+  validatePlanning(v.planning);
   if (v.onboardingDraft != null) {
     if (!object(v.onboardingDraft)) throw new Error("Invalid setup draft");
     const { step, form } = v.onboardingDraft;

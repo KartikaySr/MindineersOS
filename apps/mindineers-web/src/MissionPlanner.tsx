@@ -1,3 +1,4 @@
+import PlanReview from "./domains/planning/PlanReview";
 import MissionViews from "./MissionViews";
 import type {
   Workspace,
@@ -113,6 +114,10 @@ export default function MissionPlanner({
           {warning}
         </p>
       )}
+      <details>
+        <summary>Plan baselines, split and merge</summary>
+        <PlanReview data={data} update={update} />
+      </details>
       <div className="mission-summary">
         <div>
           <strong>{tasks.length}</strong>

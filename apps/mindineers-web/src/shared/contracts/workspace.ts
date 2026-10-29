@@ -417,6 +417,7 @@ export interface AgentRecord extends Entity {
   color: string;
 }
 export interface Workspace {
+  planning?: import("../../domains/planning/model").PlanningState;
   suite?: import("../../domains/settings/workbench-contracts").Suite;
   settings: WorkspaceSettings;
   product?: Partial<ProductCollections>;
