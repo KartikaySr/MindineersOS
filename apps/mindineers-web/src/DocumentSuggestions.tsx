@@ -5,8 +5,10 @@ import { applyProposal } from "./document-proposals";
 export default function DocumentSuggestions({
   doc,
   patch,
+  reviewer,
 }: {
   doc: DocumentRecord;
+  reviewer: string;
   patch: (value: Partial<DocumentRecord>) => void;
 }) {
   const [message, setMessage] = useState("");
@@ -26,6 +28,8 @@ export default function DocumentSuggestions({
           <strong>
             {p.state} · {p.at}
           </strong>
+          <p>Proposed by {p.author || "Unspecified"} · self-reported attribution</p>
+          {p.reviewedBy && <p>Reviewed by {p.reviewedBy} · {p.reviewedAt}</p>}
           <div className="business-grid">
             <div>
               <h4>Original selection</h4>
@@ -47,7 +51,8 @@ export default function DocumentSuggestions({
                 disabled={doc.body !== p.baseBody}
                 onClick={() => {
                   try {
-                    patch(applyProposal(doc, p));
+                    const next = applyProposal(doc, p);
+                    patch({...next, proposals: next.proposals?.map(item => item.id === p.id ? {...item, reviewedBy: reviewer, reviewedAt: new Date().toISOString()} : item) || []});
                     setMessage(
                       "Suggestion applied. Previous content saved in Versions.",
                     );
@@ -66,7 +71,7 @@ export default function DocumentSuggestions({
                 onClick={() =>
                   patch({
                     proposals: (doc.proposals || []).map((x) =>
-                      x.id === p.id ? { ...x, state: "Declined" } : x,
+                      x.id === p.id ? { ...x, state: "Declined", reviewedBy: reviewer, reviewedAt: new Date().toISOString() } : x,
                     ),
                   })
                 }

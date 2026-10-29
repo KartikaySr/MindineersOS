@@ -1,3 +1,5 @@
+import ConnectedResourcePanel from "./shared/ui/ConnectedResourcePanel";
+import type { ConnectedResourceService } from "./shared/services/connected-resource";
 import type {
   Workspace,
   WorkspaceUpdate,
@@ -95,8 +97,14 @@ export default function Workbench({
   route,
   data,
   update,
+  settingsScope,
+  workspaceId = "unbound",
+  service,
 }: {
   route: string;
+  settingsScope?: string;
+  workspaceId?: string;
+  service?: ConnectedResourceService;
   data: Workspace;
   update: WorkspaceUpdate;
 }) {
@@ -121,9 +129,15 @@ export default function Workbench({
   if (route === "settings")
     return (
       <ScopeSettings
+        initialScope={settingsScope}
         suite={suite}
         change={change}
         entities={{
+          User: [
+            { id: "local-owner", name: data.settings.name || "Local owner" },
+          ],
+          Device: data.product?.devices || [],
+          Team: data.records.teams || suite.localRecords?.teams || [],
           Project: data.projects || [],
           Agent: data.agents || [],
           Run: suite.runs || [],
@@ -257,6 +271,13 @@ export default function Workbench({
           available when your backend is connected.
         </span>
       </div>
+      {route === "tools" && record && (
+        <ConnectedResourcePanel
+          scope={{ workspaceId, kind: "catalog", entityId: record.id }}
+          title="Package installation and revocation"
+          {...(service ? { service } : {})}
+        />
+      )}
       <div className="wb-toolbar">
         <Field label="Find records" value={search} onChange={setSearch} />
       </div>
@@ -544,6 +565,7 @@ function Links({
   data: Workspace;
 }) {
   const targets = [
+    ...data.agents.map((r) => ({ ...r, domain: "agents" })),
     ...data.projects.map((r) => ({ ...r, domain: "projects" })),
     ...Object.entries(data.records).flatMap(([domain, rows]) =>
       rows.map((r) => ({ ...r, domain })),
@@ -839,7 +861,7 @@ function Evidence({
         onSubmit={(e) => {
           e.preventDefault();
           const f = Object.fromEntries(new FormData(e.currentTarget));
-          if (!validHttpUrl(f.url)) {
+          if (!validHttpUrl(String(f.url || ""))) {
             setError("Enter an HTTP or HTTPS source URL.");
             return;
           }

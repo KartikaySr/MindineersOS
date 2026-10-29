@@ -2,10 +2,12 @@ import type { ReactNode } from "react";
 // A deliberately small renderer: source is never inserted as HTML.
 function inline(text: string): ReactNode[] {
   return text
-    .split(/(\*\*[^*\n]+\*\*|`[^`\n]+`|\[[^\]\n]+\]\([^\s)]+\))/g)
+    .split(/(\*\*[^*\n]+\*\*|\*[^*\n]+\*|~~[^~\n]+~~|`[^`\n]+`|\[[^\]\n]+\]\([^\s)]+\))/g)
     .map((part, i) => {
       if (part.startsWith("**") && part.endsWith("**"))
         return <strong key={i}>{part.slice(2, -2)}</strong>;
+      if (part.startsWith("*") && part.endsWith("*")) return <em key={i}>{part.slice(1, -1)}</em>;
+      if (part.startsWith("~~") && part.endsWith("~~")) return <del key={i}>{part.slice(2, -2)}</del>;
       if (part.startsWith("`") && part.endsWith("`"))
         return <code key={i}>{part.slice(1, -1)}</code>;
       const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(part);
@@ -54,7 +56,7 @@ export default function MarkdownPreview({ body }: { body: string }) {
       code.push(line);
       continue;
     }
-    const content = inline(line.replace(/^(#{1,3} |[-*] |> )/, ""));
+    const content = inline(line.replace(/^(#{1,3} |[-*] |\d+\. |> )/, ""));
     blocks.push(
       line.startsWith("# ") ? (
         <h1 key={i}>{content}</h1>
@@ -64,7 +66,7 @@ export default function MarkdownPreview({ body }: { body: string }) {
         <h3 key={i}>{content}</h3>
       ) : line.startsWith("> ") ? (
         <blockquote key={i}>{content}</blockquote>
-      ) : /^[-*] /.test(line) ? (
+      ) : /^\d+\. /.test(line) ? (<ol key={i} start={Number.parseInt(line)}><li>{content}</li></ol>) : /^[-*] /.test(line) ? (
         <ul key={i}>
           <li>{content}</li>
         </ul>

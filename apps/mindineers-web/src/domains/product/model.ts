@@ -32,6 +32,8 @@ export interface IngestionDraft {
   at: string;
 }
 export interface ProductReview {
+  dueAt?: string;
+  routing?: {action: string; from: string; to: string; reason: string; at: string}[];
   id: string;
   entityId: string;
   domain: "Engineering" | "Procurement" | "Creative" | "Evaluation";
@@ -120,6 +122,8 @@ export const productWorkflowValidators = {
       "Withdrawn",
     ].includes(v.state ?? "") &&
     object(v) &&
+    (v.dueAt === undefined || (typeof v.dueAt === "string" && Number.isFinite(Date.parse(v.dueAt)))) &&
+    (v.routing === undefined || list(v.routing, r => fields(r, ["action", "from", "to", "reason", "at"]))) &&
     list(v.reviewers, (x) => typeof x === "string") &&
     list(
       v.decisions,
@@ -427,4 +431,20 @@ export function adjudicate(
     at: new Date().toISOString(),
     revealed,
   };
+}
+
+export function routeProductReview(review: ProductReview, snapshot: string, action: "Delegate" | "Escalate" | "Schedule", target: string, reason: string, now = new Date()): ProductReview {
+  if (review.state !== "In review" || review.snapshot !== snapshot) throw new Error("Only a current open revision can be routed.");
+  if (!reason.trim()) throw new Error("Record a reason for the routing change.");
+  const from = review.reviewers[review.decisions.length];
+  if (!from) throw new Error("No remaining review step.");
+  const routing = [...(review.routing || []), {action, from, to: target.trim(), reason: reason.trim(), at: now.toISOString()}];
+  if (routing.length > 100) throw new Error("Routing history is full. Prepare a new review.");
+  if (action === "Schedule") {
+    if (!Number.isFinite(Date.parse(target)) || Date.parse(target) <= now.getTime()) throw new Error("Choose a future review deadline.");
+    return {...review, dueAt: new Date(target).toISOString(), routing};
+  }
+  const name = target.trim();
+  if (!name || name.length > 120 || name.toLowerCase() === review.author.toLowerCase() || review.reviewers.some(r => r.toLowerCase() === name.toLowerCase())) throw new Error("Choose a distinct reviewer other than the proposer or existing reviewers.");
+  return {...review, reviewers: review.reviewers.map((r,i) => i === review.decisions.length ? name : r), routing};
 }

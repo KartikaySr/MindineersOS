@@ -1,5 +1,6 @@
 export const routeIds = [
   "welcome",
+  "portal",
   "sign-in",
   "sign-up",
   "recovery",

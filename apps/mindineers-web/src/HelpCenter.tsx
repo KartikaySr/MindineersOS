@@ -4,6 +4,16 @@ import { Button, Empty } from "./ProductUI";
 import { download } from "./product-model";
 const guides = [
   [
+    "Finding every workspace tool",
+    "Each workspace has an Overview and a Details & tools view. Details & tools contains the planning fields, versions, evidence and configuration controls added across the earlier phases. Use All apps in the sidebar to reach the full module catalog.",
+    "home",
+  ],
+  [
+    "Your spatial workspace",
+    "Open the 3D office to inspect character avatars, switch desk layouts or move between rooms. Low-resource 2D view stops rendering while keeping agent selection available. You can also enable Office preview under Make it yours on the dashboard.",
+    "office",
+  ],
+  [
     "Getting started",
     "Create a workspace, name your first project, and add a mission with a clear acceptance criterion. Example records can be included during setup.",
     "projects",

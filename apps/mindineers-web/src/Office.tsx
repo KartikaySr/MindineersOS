@@ -1,3 +1,4 @@
+import { createOfficeAvatar } from "./office-avatar";
 import type { AgentRecord } from "./shared/contracts/workspace";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -7,11 +8,13 @@ export default function Office({
   onSelect,
   compact = false,
   reduced = false,
+  layout = "studio",
 }: {
   agents: AgentRecord[];
   onSelect: (id: string) => void;
   compact?: boolean;
   reduced?: boolean;
+  layout?: "studio" | "circle";
 }) {
   const host = useRef<HTMLDivElement>(null),
     [fallback, setFallback] = useState(false);
@@ -42,7 +45,7 @@ export default function Office({
     scene.add(sun);
     const group = new THREE.Group();
     scene.add(group);
-    const targets: THREE.Mesh[] = [];
+    const targets: THREE.Group[] = [];
     function box(
       w: number,
       h: number,
@@ -66,21 +69,24 @@ export default function Office({
     for (let i = -3; i <= 3; i++) box(0.014, 0.01, 6, i, -0.06, 0, 0xc7d0bd);
     for (let i = -2; i <= 2; i++) box(8, 0.01, 0.014, 0, -0.06, i, 0xc7d0bd);
     agents.forEach((a, i) => {
-      const x = i % 2 ? 2 : -2,
-        z = i < 2 ? -1.5 : 1.4;
+      const angle = (i * Math.PI) / 2;
+      const x = layout === "circle" ? Math.cos(angle) * 2.3 : i % 2 ? 2 : -2,
+        z =
+          layout === "circle"
+            ? Math.sin(angle) * 1.65 - 0.4
+            : i < 2
+              ? -1.5
+              : 1.4;
       box(2.3, 0.15, 1.2, x, 0.8, z, 0xfaf8ed);
       box(0.12, 0.8, 0.12, x - 0.8, 0.35, z, 0x88917f);
       box(0.12, 0.8, 0.12, x + 0.8, 0.35, z, 0x88917f);
       box(0.85, 0.5, 0.09, x, 1.15, z - 0.25, 0x454d42);
       box(0.72, 0.35, 0.03, x, 1.16, z - 0.19, 0xc8ed9b);
-      const geo = new THREE.SphereGeometry(0.36, 24, 24),
-        mat = new THREE.MeshStandardMaterial({ color: a.color });
-      disposables.push(geo, mat);
-      const orb = new THREE.Mesh(geo, mat);
-      orb.position.set(x, 1.15, z + 0.8);
-      orb.userData = { id: a.id, base: 1.15 };
-      group.add(orb);
-      targets.push(orb);
+      const { avatar, dispose } = createOfficeAvatar(a.id, a.color);
+      avatar.position.set(x, 0, z + 0.85);
+      group.add(avatar);
+      targets.push(avatar);
+      disposables.push({ dispose });
     });
     box(1, 0.4, 1, 0, 0.15, 0, 0xc2cdb5);
     const plant = new THREE.Mesh(
@@ -163,7 +169,7 @@ export default function Office({
         (-(e.clientY - r.top) / r.height) * 2 + 1,
       );
       ray.setFromCamera(pointer, camera);
-      const hits = ray.intersectObjects(targets);
+      const hits = ray.intersectObjects(targets, true);
       const hitId: unknown = hits[0]?.object.userData.id;
       if (typeof hitId === "string") onSelect(hitId);
     };
@@ -181,11 +187,9 @@ export default function Office({
     observer.observe(el);
     resize();
     function animate(t: number) {
-      targets.forEach(
-        (m, i) =>
-          (m.position.y =
-            m.userData.base + (reduced ? 0 : Math.sin(t * 0.0015 + i) * 0.045)),
-      );
+      targets.forEach((avatar, i) => {
+        avatar.rotation.y = reduced ? 0 : Math.sin(t * 0.0007 + i) * 0.08;
+      });
       renderer.render(scene, camera);
       if (!document.hidden && !reduced) frame = requestAnimationFrame(animate);
     }
@@ -222,7 +226,7 @@ export default function Office({
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [agents, onSelect, reduced]);
+  }, [agents, onSelect, reduced, layout]);
   return (
     <div className={"office-scene " + (compact ? "compact" : "")}>
       <div

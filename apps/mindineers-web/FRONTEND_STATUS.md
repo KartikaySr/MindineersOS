@@ -1,6 +1,6 @@
 # Frontend implementation status
 
-Updated 25 October 2026. Backend/database implementation remains explicitly gated on user approval.
+Updated 28 October 2026. Backend/database implementation remains explicitly gated on user approval.
 
 ## Implemented and usable locally
 
@@ -42,27 +42,28 @@ CRM now includes CSV field mapping, validation previews, duplicate skips, review
 
 Authentication/session recovery, organization permissions, agent/model responses, workflow execution, live run state and controls, real tool approvals, provider connections/OAuth, external calendar sync, multi-user presence, billing, telemetry, verified evaluation runs, external publishing, device workers, retention enforcement, secure search/indexing and synchronization.
 
-## Frontend work still required for full architectural parity
+## Current restoration and verification
 
-These are real frontend gaps, not tasks that can all be solved by merely adding a backend:
+The original architecture is preserved in [docs/ORIGINAL_FRONTEND_ARCHITECTURE.md](docs/ORIGINAL_FRONTEND_ARCHITECTURE.md). [PHASE_INTEGRATION.md](PHASE_INTEGRATION.md) explains how earlier phase interfaces remain reachable and why JavaScript compatibility files now delegate to TypeScript implementations.
 
-- Dedicated domain screens are now strict TypeScript. Finish the main.jsx shell and remaining runtime-validator audit; generate API contracts once the backend interface is agreed. Phase 1 adds a strict typed foundation, workspace contracts, repository/transport adapters, routing and shared UI. See PHASE_1_FOUNDATION.md for the explicit migration boundary.
-- Cloud organization creation, connected identity challenge/error/session flows, and effective-permission interfaces. Local workspace switching and account-entry availability screens are implemented; these are not working cloud authentication.
-- Runtime payload validation against schemas, conditional/parallel runtime semantics, trigger history, visual edge routing and configuration diff UI. Draft-07 schema structure and local-reference checks are implemented; formats and schema-to-schema assignability are not fully validated. Named ports, endpoint/type checks, nested subflow editing (four levels), schema syntax and concurrency validation are implemented.
-- Server-connected run DAG, partial artifacts, acknowledged controls, replay, checkpoints and incident correlation.
-- Server-authorized review ownership, timed notifications and field-level revision highlighting. Local delegation, escalation, snooze, before/after comparison and version invalidation are implemented.
-- Rich-text editing, collaborative suggestion attribution and more artifact preview formats. Selected-range proposals and stale-edit protection are implemented.
-- Knowledge ingestion/sync state and connected evidence retrieval. Local evidence mapping, contradiction resolution, search and memory confirmation/forget are implemented.
-- Connected repository tree/CI interfaces and terminal capability boundaries. Local supplied-file diffs/review and creative variant editing/publication drafts are implemented.
-- Authenticated customer portal delivery, provider reconciliation/import contracts and richer procurement approval routing. Local customer-scoped exports, finance matching, purchase requests, and delivery reference remapping after CRM merge are implemented.
-- Executable scenario environments, independent/blind evaluation adjudication, and connected improvement promotion/rollback acknowledgements. Local comparisons, descriptive evaluation statistics and evidence-gated review records are implemented.
-- Detailed connector/device lifecycle and catalog install/update/revocation. Model/device configuration profiles are implemented; health/resource inspection requires runtime contracts.
-- Connected billing/subscription administration, authoritative effective permissions and incident telemetry. Local access-review and incident-response interfaces are implemented.
-- Per-entity overrides and mandatory-policy conflict previews are implemented. Authoritative entity relationships and enforcement require backend integration.
-- Local workspace undo/redo and stale-save isolation are implemented. Collaborative conflict resolution, externally executed action recovery and offline synchronization still need connected contracts.
-- Comprehensive mobile/keyboard/screen-reader regression coverage and measured browser performance. Compressed build-size budgets are now enforced.
+- All authored frontend JavaScript has migrated: 104 strict TS/TSX files, 53 compatibility facades, zero unchecked JS files.
+- Rich document authoring, pre-edit checkpoints, attributed proposals, field-level revision comparisons, audio/video previews, review routing, explicit local conflict resolution and disconnected customer portal interfaces are implemented.
+- The 3D office has selectable procedural characters, full-roster rooms, alternate layouts and a 2D low-resource option. Dashboard Office preview is restored as an optional configurable section.
+- The settings designer includes Organization, Workspace, User, Device, Project, Team, Agent and Run scopes, cross-category search, before/after edit previews and guarded undo. Overview scope buttons open the corresponding designer. These are local policy drafts, not authoritative enforcement.
+- Customer portal reads check permission before fetching and reject expired sessions. Unresolved connected commands retain request identity for retries. Server authorization and deduplication remain required.
+- On 28 October, `npm run verify:release` passes with 106 tests, strict type checking, production build, asset/header gates and complete type audit. Initial JavaScript is 135.7 kB gzip. The lazy Office chunk still triggers Vite's 500 kB raw-size warning while meeting the configured compressed budget.
+- Local browser access is now available. Office character rendering/selection, 2D inspector selection, dashboard preview access and Team settings navigation have been verified. Earlier phase notes below describe their historical test conditions.
 
-No claim of complete full-scope or production readiness should be made until these remaining frontend requirements are implemented and verified. Current mock/example content is presentation data, not evidence of executed agents or live integrations.
+## Remaining acceptance work
+
+- Reconcile every original requirement and canonical journey at action level. Spatial team grouping, presence and activity presentation need explicit acceptance evidence; live presence needs a service.
+- Finish connected-service UI acceptance across identity, integrations, runs, billing, sharing and customer delivery, including denied, stale, expired, retry and receipt states. Disconnected contracts do not establish live functionality.
+- Verify the new editor, conflict recovery and portal flows in-browser and broaden mobile, keyboard, screen-reader, light/dark and reduced-motion regression checks. Measure browser performance beyond compressed bundle size.
+- Complete a security-focused review of changed boundaries; frontend checks cannot replace backend authorization, tenant isolation or runtime containment.
+- Review and publish the current local changes, then verify the deployed assets. Passing local checks does not establish deployment.
+- Integrate the existing inherited backend only after separate user approval. Authentication, agent execution, provider integrations, synchronization, billing and authoritative permissions remain unconnected.
+
+No full-scope completion percentage or production-security guarantee is claimed. See [FINAL_FRONTEND_ACCEPTANCE.md](FINAL_FRONTEND_ACCEPTANCE.md) for release gates.
 
 ## Phase 1 verification
 
@@ -89,3 +90,20 @@ Settings, bounded workspace recovery, mobile/keyboard interaction improvements a
 Node 24.22.1 passes strict checks, 97 tests and the production build. Route-level lazy loading reduces the initial JavaScript to approximately 133 kB gzip. Build gates enforce size budgets and security-header consistency; a hosted checker verifies HTTP responses and optionally every asset against the local release. DOM integration mounts all non-WebGL routes and exercises settings persistence and guarded undo/redo. Backup validation now also rejects duplicate legacy record IDs and unsafe legacy evidence URLs.
 
 The type audit identifies 81 TypeScript files, 41 compatibility facades, 12 handwritten JavaScript files outside strict checking and one generated JavaScript file. These are file counts, not a completion percentage. Focused browser checks now pass for onboarding, settings persistence/recovery, mobile drawer keyboard handling, themes and office rendering. Comprehensive accessibility and whole-app browser acceptance remain pending. See PHASE_6_RELEASE.md for release evidence and the remaining work. No backend or database implementation was started.
+
+## Office and portal follow-through — 29 October 2026
+
+- Office search, role filtering and explicit team-linked agent grouping now share the same roster for 2D and 3D. Teams → Details & tools → Links supports agent records; grouping uses those explicit references rather than guessing membership from prose. Empty groups have a clear recovery path.
+- The room roster displays saved profile status and opt-in recorded activity. Existing uniquely named activity authors remain compatible. This does not represent live presence or runtime status, and the visibility toggle is a presentation preference, not an access control.
+- Customer portal service replacement remounts its session boundary, clears previous customer state and aborts pending sign-out work. Repeated sign-out submissions are blocked until resolution.
+- Release verification passes 108 tests, strict TypeScript, production build, asset/header checks and the complete type audit. Initial JavaScript is 136.5 kB gzip; the lazy office still emits Vite's raw-size warning.
+- Browser use currently reports disabled again. Visual acceptance for these latest controls remains pending; prior browser evidence applies only to the previously tested revision. No new deployment is claimed.
+
+## Authoring and release follow-through — 29 October 2026
+
+- Conversation composer drafts persist per thread through navigation and reload. Saving a message clears only that thread's composer; the storage validator bounds imported drafts.
+- Document creation includes project brief, research report and meeting-note templates. Markdown heading navigation ignores fenced code. General comments record the local author. Sheets have numeric chart previews with an accessible data table, signed values, formula evaluation and explicit omitted-row counts.
+- Catalog package and improvement records expose disconnected lifecycle/status panels using the existing scoped service contract. No installation, promotion or rollback executes without an adapter.
+- Connected-resource service replacement resets stale account state; refreshing cancels unsubmitted reviews while preserving attempted request identities and their reviewed effect. Concurrent duplicate command submissions are blocked.
+- Latest release verification: 111 passing tests, 106 strict TS/TSX files, 53 compatibility facades, zero unchecked authored JavaScript, production build and asset/header checks passed. The schema-validator declaration is explicitly tracked so clean deployments can typecheck.
+- Full architectural parity remains open. Missing or unverified items include advanced mission split/merge and workload journeys, voice/media collaboration, complete connected-state acceptance, and mobile/screen-reader/performance verification. This revision must not be described as the completed original architecture.

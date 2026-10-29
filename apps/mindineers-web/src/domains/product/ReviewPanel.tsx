@@ -1,3 +1,4 @@
+import RevisionDiff from "./RevisionDiff";
 import { useState } from "react";
 import { Button, Field, useCollection } from "../../shared/ui/controls";
 import type {
@@ -5,7 +6,7 @@ import type {
   WorkspaceUpdate,
 } from "../../shared/contracts/workspace";
 import type { ProductReview } from "./model";
-import { canonical, prepareReview, reviewDecision } from "./model";
+import { canonical, prepareReview, reviewDecision, routeProductReview } from "./model";
 export default function ReviewPanel({
   data,
   update,
@@ -25,7 +26,9 @@ export default function ReviewPanel({
   const [author, setAuthor] = useState(""),
     [reviewers, setReviewers] = useState(""),
     [reason, setReason] = useState(""),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(""),
+    [handoff, setHandoff] = useState(""),
+    [deadline, setDeadline] = useState("");
   const snapshot = canonical(content),
     items = reviews.filter(
       (r) => r.domain === domain && r.entityId === entityId,
@@ -99,6 +102,8 @@ export default function ReviewPanel({
               Proposed by {r.author} · {r.createdAt}
             </p>
             <p>Review order: {r.reviewers.join(" → ")}</p>
+            {r.dueAt && <p>Review deadline: {new Date(r.dueAt).toLocaleString()} {Date.parse(r.dueAt) < Date.now() && r.state === "In review" ? "· Overdue" : ""}</p>}
+            {r.routing?.map((event,i) => <p key={i}>{event.action}: {event.from} → {event.to} · {event.reason} · {event.at}</p>)}
             {r.decisions.map((d, i) => (
               <p key={i}>
                 {d.reviewer}: {d.decision} · {d.reason} · {d.at}
@@ -107,6 +112,13 @@ export default function ReviewPanel({
             {r.state === "In review" && (
               <>
                 <p>Next reviewer: {next}</p>
+                <details><summary>Route this review step</summary>
+                  <Field label="New reviewer" value={handoff} onChange={setHandoff} />
+                  <p>Use the decision rationale above to explain the handoff. Delegation and escalation affect only the next uncompleted step. Previous decisions remain unchanged.</p>
+                  {(["Delegate", "Escalate"] as const).map(action => <Button key={action} disabled={stale || !handoff.trim() || !reason.trim()} onClick={() => attempt(() => {const nextReview = routeProductReview(r,snapshot,action,handoff,reason); setReviews(all => all.map(x => x.id === r.id ? nextReview : x)); setMessage("Review routing recorded locally. No notification was sent.");})}>{action} next step</Button>)}
+                  <Field label="Review deadline" type="datetime-local" value={deadline} onChange={setDeadline} />
+                  <Button disabled={stale || !deadline || !reason.trim()} onClick={() => attempt(() => {const nextReview = routeProductReview(r,snapshot,"Schedule",deadline,reason); setReviews(all => all.map(x => x.id === r.id ? nextReview : x)); setMessage("Deadline saved. Background reminders require the notification service.");})}>Set review deadline</Button>
+                </details>
                 <Button
                   disabled={stale || !reason.trim() || errors.length > 0}
                   onClick={() =>
@@ -169,6 +181,7 @@ export default function ReviewPanel({
                 </Button>
               </>
             )}
+            {stale && <RevisionDiff before={readSnapshot(r.snapshot)} after={content} />}
             <details>
               <summary>Exact reviewed snapshot</summary>
               <pre className="product-code">{r.snapshot}</pre>
@@ -180,3 +193,5 @@ export default function ReviewPanel({
     </section>
   );
 }
+
+function readSnapshot(value: string): unknown { try { return JSON.parse(value); } catch { return value; } }

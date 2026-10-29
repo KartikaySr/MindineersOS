@@ -50,8 +50,8 @@ The two-phase delivery adds light green/luxury dark themes, resumable setup, das
 - Document preview and Markdown export, evidence registers, manually entered evaluation trials, and deterministic invoice draft calculations.
 - Calendar month/agenda views, meeting notes, time conflict warnings and follow-up mission creation; CRM pipeline/contact views, duplicate warnings, timeline entries and CSV export.
 - File upload/download using IndexedDB; workspace JSON backups include metadata and records, but not uploaded file binaries.
-- Scope inheritance designer for organization/workspace/project/agent/run defaults. These drafts do not enforce server policy.
-- Optional Three.js office with keyboard-accessible agent controls and imported furniture/portrait resources.
+- Scope inheritance designer for organization/workspace/user/device/project/team/agent/run defaults, searchable settings and before/after edit previews. These drafts do not enforce server policy.
+- Optional Three.js office with selectable character avatars, full-roster rooms, search, role and explicitly linked team filters, opt-in recorded activity, alternate layouts, a 2D low-resource mode, dashboard preview and imported furniture/portrait resources.
 - Source library documenting all ten supplied archives and their reuse/license boundaries.
 
 ## Dedicated product workspaces
@@ -124,3 +124,9 @@ Strict checks, 94 tests and the production build pass. Browser acceptance remain
 On Node 24, run `npm run verify:release` for tests, strict checks, the production build, compressed asset budgets, deployment-header consistency and a type-boundary report. Run `npm run verify:hosted -- https://www.mindineers.com --match-local` after deployment to compare every hosted asset with the locally verified build. The type report is generated at `reports/type-boundary.json`; `npm run audit:types -- --require-complete` intentionally fails until the remaining handwritten JavaScript is migrated.
 
 See [Phase 6 delivery and remaining work](PHASE_6_RELEASE.md). Browser acceptance is still pending; passing automated checks does not imply complete full-scope production readiness.
+
+## Original scope and restoration
+
+The preserved [original frontend architecture](docs/ORIGINAL_FRONTEND_ARCHITECTURE.md) remains the baseline. [Phase integration](PHASE_INTEGRATION.md) records restored office elements and preservation of earlier tools. [Current status](FRONTEND_STATUS.md) and [final acceptance gates](FINAL_FRONTEND_ACCEPTANCE.md) distinguish implemented local interactions, unverified journeys and backend dependencies. The 28 October local release checks pass 106 tests; full architectural parity and deployment of this working revision are not yet confirmed.
+
+The 29 October restoration release adds persistent conversation composer drafts, document templates and outline navigation, attributed comments, accessible sheet chart previews, and reviewed lifecycle boundaries for catalog and improvement records. Its 111 automated tests and production build pass. See the acceptance document for remaining original-scope requirements and visual verification gaps.

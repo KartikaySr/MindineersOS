@@ -12,7 +12,6 @@ export default function Conversations({
   update: WorkspaceUpdate;
 }) {
   const [selected, setSelected] = useState(""),
-    [draft, setDraft] = useState(""),
     [search, setSearch] = useState(""),
     [contextOpen, setContextOpen] = useState(false),
     [notice, setNotice] = useState("");
@@ -33,12 +32,28 @@ export default function Conversations({
     };
     mutate((all) => [t, ...all]);
     setSelected(t.id);
-    setDraft("");
   };
   const patch = (fields: Partial<Conversation>) =>
     mutate((all) =>
       all.map((t) => (t.id === thread?.id ? { ...t, ...fields } : t)),
     );
+  const draft = thread?.draft || "";
+  const setDraft = (draft: string) => {
+    if (thread) patch({ draft });
+    else {
+      const t: Conversation = {
+        id: crypto.randomUUID(),
+        title: "New conversation",
+        agent: data.agents[0]?.id || "",
+        messages: [],
+        context: [],
+        createdAt: new Date().toISOString(),
+        draft,
+      };
+      mutate((all) => [t, ...all]);
+      setSelected(t.id);
+    }
+  };
   const send = (e: React.FormEvent) => {
     e.preventDefault();
     if (!draft.trim()) return;
@@ -50,6 +65,7 @@ export default function Conversations({
     };
     if (thread)
       patch({
+        draft: "",
         messages: [...thread.messages, message],
         title: thread.messages.length
           ? thread.title
@@ -67,7 +83,6 @@ export default function Conversations({
       mutate((all) => [t, ...all]);
       setSelected(t.id);
     }
-    setDraft("");
   };
   useEffect(() => {
     end.current?.scrollIntoView({ block: "nearest" });
@@ -110,7 +125,6 @@ export default function Conversations({
               key={t.id}
               onClick={() => {
                 setSelected(t.id);
-                setDraft("");
                 setNotice("");
               }}
             >
@@ -261,6 +275,7 @@ export default function Conversations({
         <form className="composer" onSubmit={send}>
           <textarea
             aria-label="Conversation draft"
+            maxLength={200000}
             placeholder="Bring the messy thought…"
             rows={3}
             value={draft}

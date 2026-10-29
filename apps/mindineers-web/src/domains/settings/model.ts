@@ -81,3 +81,28 @@ export function undoOverride(
     );
   return setOverride(settings, target, key, previous);
 }
+
+export const settingScopes = [
+  "Organization",
+  "Workspace",
+  "User",
+  "Device",
+  "Project",
+  "Team",
+  "Agent",
+  "Run",
+] as const;
+/** Explicit preview ancestry; user/device settings never leak into agent policy. */
+export function scopeAncestors(scope: string): string[] {
+  const chains: Record<string, string[]> = {
+    Organization: ["Organization"],
+    Workspace: ["Organization", "Workspace"],
+    User: ["Organization", "Workspace", "User"],
+    Device: ["Organization", "Workspace", "Device"],
+    Project: ["Organization", "Workspace", "Project"],
+    Team: ["Organization", "Workspace", "Project", "Team"],
+    Agent: ["Organization", "Workspace", "Project", "Team", "Agent"],
+    Run: ["Organization", "Workspace", "Project", "Team", "Agent", "Run"],
+  };
+  return chains[scope] || [];
+}

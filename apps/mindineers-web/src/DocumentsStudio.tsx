@@ -1,3 +1,9 @@
+import SheetChart from "./domains/product/SheetChart";
+import {
+  documentTemplates,
+  documentOutline,
+} from "./domains/product/document-tools";
+const RichTextEditor = lazy(() => import("./domains/product/RichTextEditor"));
 import MarkdownPreview from "./domains/product/MarkdownPreview";
 import type { DocumentVersion, Slide } from "./shared/contracts/workspace";
 import type {
@@ -6,7 +12,7 @@ import type {
   DocumentRecord,
 } from "./shared/contracts/workspace";
 import DocumentSuggestions from "./DocumentSuggestions";
-import { useState, useRef } from "react";
+import { useState, useRef, lazy, Suspense } from "react";
 import { Button, Field, Tabs, Empty, Dialog, useCollection } from "./ProductUI";
 import { uid, download, cellValue } from "./product-model";
 export default function DocumentsStudio({
@@ -29,17 +35,21 @@ export default function DocumentsStudio({
           : d,
       ),
     );
-  const create = (kind: DocumentRecord["kind"]) => {
+  const create = (
+    kind: DocumentRecord["kind"],
+    template?: { name: string; body: string },
+  ) => {
     const record: DocumentRecord = {
       id: uid(),
       name:
-        kind === "Document"
+        template?.name ||
+        (kind === "Document"
           ? "Untitled document"
           : kind === "Sheet"
             ? "Untitled sheet"
-            : "Untitled presentation",
+            : "Untitled presentation"),
       kind,
-      body: "",
+      body: template?.body || "",
       rows: Array.from({ length: 8 }, () => Array(5).fill("")),
       slides: [{ id: uid(), title: "Your next idea", body: "", notes: "" }],
       comments: [],
@@ -76,6 +86,23 @@ export default function DocumentsStudio({
             </Button>
           ))}
         </div>
+        <label>
+          Start from template
+          <select
+            value=""
+            onChange={(event) => {
+              const template = documentTemplates.find(
+                (item) => item.name === event.target.value,
+              );
+              if (template) create("Document", template);
+            }}
+          >
+            <option value="">Choose a template</option>
+            {documentTemplates.map((template) => (
+              <option key={template.name}>{template.name}</option>
+            ))}
+          </select>
+        </label>
         <span className="badge">Saved on this device</span>
       </div>
       <div className="product-split">
@@ -159,20 +186,64 @@ export default function DocumentsStudio({
                 "Write",
                 "Preview",
                 "Comments",
-                ...(doc.kind === "Document" ? ["Suggestions"] : []),
+                ...(doc.kind === "Document"
+                  ? ["Rich text", "Suggestions"]
+                  : []),
                 "Versions",
               ]}
               value={mode}
               onChange={setMode}
             />
-            {mode === "Suggestions" ? (
-              <DocumentSuggestions doc={doc} patch={patch} />
+            {mode === "Rich text" ? (
+              <Suspense fallback={<p role="status">Loading editor…</p>}>
+                <RichTextEditor
+                  key={doc.id}
+                  body={doc.body}
+                  save={(body, checkpoint) =>
+                    setDocs((rows) =>
+                      rows.map((d) =>
+                        d.id !== doc.id
+                          ? d
+                          : {
+                              ...d,
+                              body,
+                              updatedAt: new Date().toISOString(),
+                              versions: checkpoint
+                                ? [
+                                    {
+                                      id: uid(),
+                                      at: new Date().toISOString(),
+                                      body: d.body,
+                                      rows: structuredClone(d.rows),
+                                      slides: structuredClone(d.slides),
+                                    },
+                                    ...d.versions,
+                                  ].slice(0, 50)
+                                : d.versions,
+                            },
+                      ),
+                    )
+                  }
+                />
+              </Suspense>
+            ) : mode === "Suggestions" ? (
+              <DocumentSuggestions
+                doc={doc}
+                patch={patch}
+                reviewer={data.settings.name}
+              />
             ) : mode === "Comments" ? (
-              <Comments key={doc.id} doc={doc} patch={patch} />
+              <Comments
+                key={doc.id}
+                doc={doc}
+                patch={patch}
+                author={data.settings.name}
+              />
             ) : mode === "Versions" ? (
               <Versions key={doc.id} doc={doc} patch={patch} />
             ) : doc.kind === "Document" ? (
               <Writer
+                author={data.settings.name}
                 key={doc.id}
                 doc={doc}
                 patch={patch}
@@ -211,8 +282,9 @@ type DocumentEditorProps = {
   doc: DocumentRecord;
   patch: (fields: Partial<DocumentRecord>) => void;
   preview?: boolean;
+  author?: string;
 };
-function Writer({ doc, patch, preview }: DocumentEditorProps) {
+function Writer({ doc, patch, preview, author }: DocumentEditorProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const [selection, setSelection] = useState<{
       start: number;
@@ -279,6 +351,7 @@ function Writer({ doc, patch, preview }: DocumentEditorProps) {
                   ...doc.comments,
                   {
                     id: uid(),
+                    author: author || "Unspecified",
                     quote: text,
                     text: "Review this passage.",
                     resolved: false,
@@ -316,6 +389,7 @@ function Writer({ doc, patch, preview }: DocumentEditorProps) {
                   {
                     id: uid(),
                     ...selection,
+                    author: author || "Unspecified",
                     replacement,
                     reason,
                     state: "Pending",
@@ -330,6 +404,26 @@ function Writer({ doc, patch, preview }: DocumentEditorProps) {
           </Button>
         </Dialog>
       )}
+      <details>
+        <summary>Document outline</summary>
+        <nav aria-label="Document outline">
+          {documentOutline(doc.body).map((heading) => (
+            <Button
+              key={heading.offset}
+              onClick={() => {
+                ref.current?.focus();
+                ref.current?.setSelectionRange(heading.offset, heading.offset);
+              }}
+            >
+              {"› ".repeat(heading.level - 1)}
+              {heading.title}
+            </Button>
+          ))}
+          {!documentOutline(doc.body).length && (
+            <p>Add Markdown headings to build an outline.</p>
+          )}
+        </nav>
+      </details>
       <textarea
         ref={ref}
         className="document-writer"
@@ -347,6 +441,7 @@ function Writer({ doc, patch, preview }: DocumentEditorProps) {
 }
 function Sheet({ doc, patch, preview }: DocumentEditorProps) {
   const [cell, setCell] = useState("A1");
+  const [showChart, setShowChart] = useState(false);
   const cols = Math.max(5, ...doc.rows.map((r) => r.length));
   const result = (r: number, c: number) => {
     try {
@@ -359,6 +454,12 @@ function Sheet({ doc, patch, preview }: DocumentEditorProps) {
     <>
       <div className="document-tools">
         <span className="badge">{cell}</span>
+        <Button
+          aria-pressed={showChart}
+          onClick={() => setShowChart(!showChart)}
+        >
+          {showChart ? "Hide chart" : "Show chart"}
+        </Button>
         <Button
           disabled={doc.rows.length >= 500}
           onClick={() => patch({ rows: [...doc.rows, Array(cols).fill("")] })}
@@ -393,6 +494,7 @@ function Sheet({ doc, patch, preview }: DocumentEditorProps) {
         Formulas: =A1+B1, =A1*B1, =A1/B1, =SUM(A1:B3). Formulas are evaluated
         without executing code.
       </p>
+      {showChart && <SheetChart rows={doc.rows} />}
       <div className="sheet-scroll">
         <table className="product-sheet">
           <thead>
@@ -540,7 +642,7 @@ function Slides({ doc, patch, preview }: DocumentEditorProps) {
     </div>
   );
 }
-function Comments({ doc, patch }: DocumentEditorProps) {
+function Comments({ doc, patch, author }: DocumentEditorProps) {
   const [text, setText] = useState("");
   return (
     <>
@@ -555,6 +657,7 @@ function Comments({ doc, patch }: DocumentEditorProps) {
               {
                 id: uid(),
                 quote: "",
+                author: author || "Unspecified",
                 text: text.trim(),
                 resolved: false,
                 at: new Date().toISOString(),
@@ -599,6 +702,7 @@ function Comments({ doc, patch }: DocumentEditorProps) {
             {c.resolved ? "Reopen" : "Resolve"}
           </Button>
           <small>
+            {c.author || "Unspecified author"} ·{" "}
             {c.resolved ? "Resolved" : "Open"} ·{" "}
             {new Date(c.at).toLocaleString()}
           </small>

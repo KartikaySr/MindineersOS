@@ -722,3 +722,14 @@
   stroke-width: 1.5;
   opacity: 0.65;
 }
+
+.rich-document { min-height: 360px; padding: 24px; border: 1px solid var(--border); border-radius: 14px; overflow-wrap: anywhere; line-height: 1.7; }
+.rich-document:focus { outline: 2px solid var(--accent, #7ab998); outline-offset: 3px; }
+.rich-document pre { white-space: pre-wrap; }
+.rich-document a { text-decoration: underline; }
+.document-tools { flex-wrap: wrap; }
+.product-code ins { text-decoration: none; background: #6da78325; }
+.product-code del { background: #ca777725; }
+
+.artifact-preview video, .artifact-preview audio { display: block; max-width: 100%; width: 100%; }
+.artifact-preview video { max-height: 65vh; background: #111; }

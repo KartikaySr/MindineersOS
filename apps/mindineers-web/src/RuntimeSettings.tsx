@@ -1,3 +1,5 @@
+import type { ConnectedResourceService } from "./shared/services/connected-resource";
+import ConnectedResourcePanel from "./shared/ui/ConnectedResourcePanel";
 import type {
   Workspace,
   WorkspaceUpdate,
@@ -9,9 +11,13 @@ import { uid, download } from "./product-model";
 export default function RuntimeSettings({
   data,
   update,
+  workspaceId = "unbound",
+  service,
 }: {
   data: Workspace;
   update: WorkspaceUpdate;
+  workspaceId?: string;
+  service?: ConnectedResourceService;
   route?: string;
 }) {
   const [profiles, setProfiles] = useCollection(data, update, "modelProfiles"),
@@ -108,6 +114,7 @@ export default function RuntimeSettings({
         </aside>
         {profile ? (
           <article className="product-detail">
+            <ConnectedResourcePanel {...(service ? {service} : {})} scope={{workspaceId, kind: "provider" in profile ? "model" : "device", entityId: profile.id}} title="Connection health and permitted actions" />
             <Field
               label="Profile name"
               value={profile.name}

@@ -3,6 +3,8 @@ import { useState, useId } from "react";
 import { settingGroups } from "../../workbench-schema";
 import { Button, Field } from "../../shared/ui/controls";
 import {
+  settingScopes,
+  scopeAncestors,
   entityKey,
   resolveSetting,
   settingError,
@@ -22,13 +24,16 @@ export default function ScopeSettings({
   suite,
   change,
   entities,
+  initialScope = "Workspace",
 }: {
+  initialScope?: string | undefined;
   suite: Suite;
   change: (fn: (current: Suite) => Suite) => void;
   entities: Record<string, Entity[]>;
 }) {
-  const scopes = ["Organization", "Workspace", "Project", "Agent", "Run"];
-  const [scope, setScope] = useState("Workspace"),
+  const scopes = settingScopes;
+  const [query, setQuery] = useState("");
+  const [scope, setScope] = useState(initialScope),
     [group, setGroup] = useState("Profile");
   const [savedSelection, setSelection] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState(""),
@@ -40,20 +45,25 @@ export default function ScopeSettings({
   );
   const settings = suite.settings || {};
   const groups = settingGroups as Record<string, string[][]>;
+  const visibleSettings = query.trim()
+    ? Object.values(groups)
+        .flat()
+        .filter((row) =>
+          row.join(" ").toLowerCase().includes(query.trim().toLowerCase()),
+        )
+    : groups[group] || [];
   const target = selection[scope] ? entityKey(scope, selection[scope]!) : scope;
-  const layers: Layer[] = scopes
-    .slice(0, scopes.indexOf(scope) + 1)
-    .flatMap((name) => [
-      { id: name, label: `${name} defaults` },
-      ...(selection[name]
-        ? [
-            {
-              id: entityKey(name, selection[name]!),
-              label: `${name}: ${(entities[name] || []).find((e) => e.id === selection[name])?.name || selection[name]}`,
-            },
-          ]
-        : []),
-    ]);
+  const layers: Layer[] = scopeAncestors(scope).flatMap((name) => [
+    { id: name, label: `${name} defaults` },
+    ...(selection[name]
+      ? [
+          {
+            id: entityKey(name, selection[name]!),
+            label: `${name}: ${(entities[name] || []).find((e) => e.id === selection[name])?.name || selection[name]}`,
+          },
+        ]
+      : []),
+  ]);
   function edit(key: string, value?: string) {
     if (value !== undefined && !key.startsWith("mandatory:")) {
       const error = settingError(key, value);
@@ -103,8 +113,14 @@ export default function ScopeSettings({
           </Button>
         ))}
       </div>
+      <Field
+        label="Search settings"
+        value={query}
+        onChange={setQuery}
+        placeholder="Search all categories…"
+      />
       <div className="wb-body">
-        {scopes
+        {scopeAncestors(scope)
           .filter((name) => entities[name]?.length)
           .map((name) => (
             <label className="wb-field" key={name}>
@@ -173,50 +189,47 @@ export default function ScopeSettings({
         </aside>
         <div className="wb-detail">
           <h2>
-            {scope} · {group}
+            {scope} · {query.trim() ? "Search results" : group}
           </h2>
           <p>
             Editing {selection[scope] ? "selected entity" : "scope defaults"}.
             Clearing an override restores inheritance.
           </p>
           <div className="wb-body">
-            {(groups[group] || []).map(
-              ([key = "", label = "", fallback = ""]) => {
-                const resolved = resolveSetting(
-                  settings,
-                  layers,
-                  key,
-                  fallback,
-                );
-                const inherited = resolveSetting(
-                  settings,
-                  layers.filter((layer) => layer.id !== target),
-                  key,
-                  fallback,
-                );
-                return (
-                  <SettingRow
-                    key={`${target}:${key}`}
-                    label={label}
-                    settingKey={key}
-                    value={settings[target]?.[key] ?? resolved.value}
-                    locked={inherited.locked}
-                    source={resolved.source}
-                    effectiveValue={resolved.value}
-                    conflicts={resolved.conflicts}
-                    mandatory={
-                      settings[target]?.[`mandatory:${key}`] === "true"
-                    }
-                    overridden={Object.hasOwn(settings[target] || {}, key)}
-                    onSave={(value) => edit(key, value)}
-                    onReset={() => edit(key)}
-                    onMandatory={(checked) =>
-                      edit(`mandatory:${key}`, checked ? "true" : undefined)
-                    }
-                  />
-                );
-              },
+            {visibleSettings.length === 0 && (
+              <p role="status">
+                No settings match “{query}”. Try another name or clear the
+                search.
+              </p>
             )}
+            {visibleSettings.map(([key = "", label = "", fallback = ""]) => {
+              const resolved = resolveSetting(settings, layers, key, fallback);
+              const inherited = resolveSetting(
+                settings,
+                layers.filter((layer) => layer.id !== target),
+                key,
+                fallback,
+              );
+              return (
+                <SettingRow
+                  key={`${target}:${key}`}
+                  label={label}
+                  settingKey={key}
+                  value={settings[target]?.[key] ?? resolved.value}
+                  locked={inherited.locked}
+                  source={resolved.source}
+                  effectiveValue={resolved.value}
+                  conflicts={resolved.conflicts}
+                  mandatory={settings[target]?.[`mandatory:${key}`] === "true"}
+                  overridden={Object.hasOwn(settings[target] || {}, key)}
+                  onSave={(value) => edit(key, value)}
+                  onReset={() => edit(key)}
+                  onMandatory={(checked) =>
+                    edit(`mandatory:${key}`, checked ? "true" : undefined)
+                  }
+                />
+              );
+            })}
           </div>
         </div>
       </div>
@@ -282,6 +295,12 @@ function SettingRow({
         <p role="status">
           Conflicting overrides: {conflicts.join(", ")}. The mandatory value
           wins in this preview.
+        </p>
+      )}
+      {draft !== value && (
+        <p className="notice">
+          Proposed change: <del>{value}</del> → <ins>{draft || "(empty)"}</ins>.
+          This changes a local policy draft only.
         </p>
       )}
       <Button

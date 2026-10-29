@@ -61,3 +61,37 @@ test("numeric and timezone drafts reject invalid inputs", () => {
   assert.ok(settingError("timezone", "unknown-zone"));
   assert.ok(settingError("language", " "));
 });
+
+import {
+  settingScopes,
+  scopeAncestors,
+} from "../src/domains/settings/model.ts";
+test("all original policy scopes exist and personal/device settings do not enter agent ancestry", () => {
+  assert.deepEqual(
+    [...settingScopes].sort(),
+    [
+      "Organization",
+      "Workspace",
+      "User",
+      "Device",
+      "Project",
+      "Team",
+      "Agent",
+      "Run",
+    ].sort(),
+  );
+  assert.equal(scopeAncestors("Agent").includes("Device"), false);
+  assert.equal(scopeAncestors("Agent").includes("User"), false);
+  assert.deepEqual(scopeAncestors("User"), [
+    "Organization",
+    "Workspace",
+    "User",
+  ]);
+  const resolved = resolveSetting(
+    { User: { concurrency: "99" }, Workspace: { concurrency: "2" } },
+    scopeAncestors("Agent").map((id) => ({ id, label: id })),
+    "concurrency",
+    "1",
+  );
+  assert.equal(resolved.value, "2");
+});

@@ -1,3 +1,4 @@
+import RevisionDiff from "./domains/product/RevisionDiff";
 import type {
   Workspace,
   WorkspaceUpdate,
@@ -41,6 +42,7 @@ export default function Decisions({
       mode: "Local review",
     });
   const act = (decision: string) => {
+    if (!request) return;
     try {
       const next = decideApproval(request, decision, data.settings.name);
       setRequests((rows) => rows.map((r) => (r.id === next.id ? next : r)));
@@ -177,38 +179,7 @@ export default function Decisions({
             {request.previous?.length > 0 && (
               <details>
                 <summary>Compare latest revision</summary>
-                {(
-                  [
-                    "destination",
-                    "payload",
-                    "effects",
-                    "rollback",
-                    "expiresAt",
-                    "scopes",
-                  ] as const
-                ).map((key) => {
-                  const before = request.previous.at(-1)?.[key],
-                    after = request[key];
-                  return (
-                    <div key={key}>
-                      <h4>{key}</h4>
-                      <div className="profile-fields">
-                        <pre className="product-code">
-                          Previous:{" "}
-                          {before === undefined
-                            ? "Not captured in older snapshot"
-                            : Array.isArray(before)
-                              ? before.join(", ")
-                              : before}
-                        </pre>
-                        <pre className="product-code">
-                          Current:{" "}
-                          {Array.isArray(after) ? after.join(", ") : after}
-                        </pre>
-                      </div>
-                    </div>
-                  );
-                })}
+                <RevisionDiff before={request.previous.at(-1)} after={{version: request.version, payload: request.payload, destination: request.destination, scopes: request.scopes, effects: request.effects, rollback: request.rollback, expiresAt: request.expiresAt, state: request.state, ...(request.decision ? {decision: request.decision} : {})}} />
               </details>
             )}
             <details>

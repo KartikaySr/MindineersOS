@@ -145,6 +145,18 @@ test("application routes mount and workspace recovery works through real UI even
         `Route failed: ${id}`,
       );
     }
+    // Earlier phases remain reachable in both workspace surfaces after shell migration.
+    for (const id of ["projects", "agents", "teams", "workflows", "documents", "knowledge", "engineering", "finance", "delivery", "models", "security"]) {
+      await route(id);
+      for (const mode of ["Overview", "Details & tools"]) {
+        const toggle = [...window.document.querySelectorAll(".workspace-mode button")].find(el => el.textContent.trim() === mode);
+        assert.ok(toggle, `${id} retains ${mode}`);
+        await act(async () => { toggle.click(); await flush(); });
+        assert.doesNotMatch(window.document.body.textContent, /This screen could not load|This screen couldn’t open/, `${id} ${mode} must mount`);
+      }
+    }
+    await route("home");
+    assert.ok([...window.document.querySelectorAll("a")].some(el => el.getAttribute("href") === "#office"), "Dashboard retains office access");
     await route("settings");
     const button = (text) =>
       [...window.document.querySelectorAll("button")].find(
@@ -155,6 +167,14 @@ test("application routes mount and workspace recovery works through real UI even
       await flush();
     });
     assert.match(window.document.body.textContent, /Settings policy designer/);
+    await act(async () => { button("Overview").click(); await flush(); });
+    await act(async () => {
+      [...window.document.querySelectorAll(".settings-nav button")].find(el => el.textContent.trim() === "Team").click();
+      await flush();
+    });
+    assert.match(window.document.querySelector(".wb-detail h2").textContent, /Team/);
+    await act(async () => { button("Workspace").click(); await flush(); });
+
     const field = [...window.document.querySelectorAll("label")]
       .find((el) => el.textContent.startsWith("Language"))
       ?.querySelector("input");

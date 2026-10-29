@@ -1,7 +1,7 @@
-type SetupForm = {
+export type SetupForm = {
   name: string;
   workspace: string;
-  theme: string;
+  theme: "Light" | "Dark";
   motion: boolean;
   examples: boolean;
   useCase: string;
@@ -19,7 +19,7 @@ export default function Onboarding({
 }: {
   settings: WorkspaceSettings;
   finish: (value: SetupForm | { setupLater: true }) => void;
-  draft?: { step: number; form: SetupForm };
+  draft?: { step: number; form: SetupForm } | null | undefined;
   saveDraft?: (draft: { step: number; form: SetupForm }) => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null),
@@ -145,7 +145,7 @@ export default function Onboarding({
               Appearance
               <select
                 value={form.theme}
-                onChange={(e) => set("theme", e.target.value)}
+                onChange={(e) => set("theme", e.target.value === "Dark" ? "Dark" : "Light")}
               >
                 <option value="Light">Light green</option>
                 <option value="Dark">Luxury dark</option>

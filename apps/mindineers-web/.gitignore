@@ -7,3 +7,6 @@ dist/
 
 # Source JavaScript is authored, not generated. Override the parent monorepo rule.
 !src/**/*.js
+
+# Authored declaration required by strict validation builds.
+!src/generated/schema-meta.d.ts

@@ -370,7 +370,7 @@ export default function DeliveryWorkspace({
                 <div className="notice">
                   Local preview and export only. Review document content for
                   customer suitability. Public links and authenticated customer
-                  access require the backend.
+                  access require the backend. <a href="#portal">Open the customer portal entry</a>
                 </div>
                 <label className="product-field">
                   Document to include

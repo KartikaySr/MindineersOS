@@ -21,6 +21,9 @@ export interface DocumentVersion extends Entity {
   slides: Slide[];
 }
 export interface DocumentProposal extends Entity {
+  author?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
   baseBody: string;
   start: number;
   end: number;
@@ -40,6 +43,7 @@ export interface DocumentRecord extends Entity {
     text: string;
     at: string;
     resolved: boolean;
+    author?: string;
   })[];
   versions: DocumentVersion[];
   updatedAt: string;
@@ -233,7 +237,7 @@ export type DecisionRecord = Entity &
       payload?: string;
       destination?: string;
       scopes?: string[];
-    };
+    } | null;
     assignedReviewer?: string;
     snoozedUntil?: string;
     escalated?: boolean;
@@ -396,6 +400,7 @@ export interface LegacyRecord extends Entity {
   [key: string]: unknown;
 }
 export interface Conversation extends Entity {
+  draft?: string;
   title: string;
   agent: string;
   context: string[];
@@ -403,6 +408,7 @@ export interface Conversation extends Entity {
   messages: (Entity & { text: string; createdAt: string; pinned: boolean })[];
 }
 export interface AgentRecord extends Entity {
+  portrait?: string;
   name: string;
   role: string;
   description: string;
@@ -423,8 +429,9 @@ export interface Workspace {
   >;
   records: Record<string, LegacyRecord[]>;
   messages: (Entity & { role: "user" | "system"; text: string })[];
-  posts: unknown[];
-  approvals: unknown[];
+  onboardingDraft?: {step: number; form: import("../../Onboarding").SetupForm} | null | undefined;
+  posts: (Entity & {agent: string; title: string; body: string; likes: number; saved?: boolean; liked?: boolean; comments: string[]})[];
+  approvals: (Entity & {name: string; detail: string; state: string})[];
   [key: string]: unknown;
 }
 export type WorkspaceUpdate = (

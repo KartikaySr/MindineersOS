@@ -1,3 +1,5 @@
+import type { ConnectedResourceService } from "./shared/services/connected-resource";
+import ConnectedResourcePanel from "./shared/ui/ConnectedResourcePanel";
 import ReviewPanel from "./domains/product/ReviewPanel";
 import type {
   Workspace,
@@ -10,9 +12,13 @@ import { uid, download } from "./product-model";
 export default function CreativeStudio({
   data,
   update,
+  workspaceId = "unbound",
+  service,
 }: {
   data: Workspace;
   update: WorkspaceUpdate;
+  workspaceId?: string;
+  service?: ConnectedResourceService;
 }) {
   const [campaigns, setCampaigns] = useCollection(data, update, "campaigns"),
     [selected, setSelected] = useState(""),
@@ -70,6 +76,7 @@ export default function CreativeStudio({
         </aside>
         {campaign ? (
           <article className="product-detail">
+            <ConnectedResourcePanel {...(service ? {service} : {})} scope={{workspaceId, kind: "publication", entityId: campaign.id}} title="Publication status and receipts" />
             <div className="product-editor-title">
               <input
                 aria-label="Campaign title"

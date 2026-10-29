@@ -1,3 +1,5 @@
+import type { ConnectedResourceService } from "./shared/services/connected-resource";
+import ConnectedResourcePanel from "./shared/ui/ConnectedResourcePanel";
 import Ingestion from "./domains/product/Ingestion";
 import type { MemoryRecord } from "./shared/contracts/workspace";
 import type {
@@ -13,9 +15,13 @@ import { validHttpUrl } from "./workbench-model";
 export default function KnowledgeHub({
   data,
   update,
+  workspaceId = "unbound",
+  service,
 }: {
   data: Workspace;
   update: WorkspaceUpdate;
+  workspaceId?: string;
+  service?: ConnectedResourceService;
 }) {
   const [sources, setSources] = useCollection(data, update, "sources"),
     [memories, setMemories] = useCollection(data, update, "memories"),
@@ -200,6 +206,7 @@ export default function KnowledgeHub({
           </aside>
           {source ? (
             <article className="product-detail">
+            <ConnectedResourcePanel {...(service ? {service} : {})} scope={{workspaceId, kind: "knowledge", entityId: source.id}} title="Ingestion and synchronization status" />
               <header className="wb-row">
                 <h2>{source.name}</h2>
                 <Button onClick={() => setEditing(source)}>Edit source</Button>

@@ -1,3 +1,5 @@
+import ConnectedResourcePanel from "./shared/ui/ConnectedResourcePanel";
+import type { ConnectedResourceService } from "./shared/services/connected-resource";
 import Adjudication from "./domains/product/Adjudication";
 import type {
   Workspace,
@@ -98,10 +100,14 @@ export default function ExperimentWorkspace({
   data,
   update,
   route,
+  workspaceId = "unbound",
+  service,
 }: {
   data: Workspace;
   update: WorkspaceUpdate;
   route: string;
+  workspaceId?: string;
+  service?: ConnectedResourceService;
 }) {
   const key =
     route === "simulation"
@@ -243,6 +249,17 @@ export default function ExperimentWorkspace({
         </aside>
         {record ? (
           <article className="product-detail">
+            {key === "improvements" && (
+              <ConnectedResourcePanel
+                scope={{
+                  workspaceId,
+                  kind: "improvement",
+                  entityId: record.id,
+                }}
+                title="Promotion and rollback status"
+                {...(service ? { service } : {})}
+              />
+            )}
             <div className="product-editor-title">
               <h2>{record.name}</h2>
               <Button onClick={() => download(`${key}-record.json`, record)}>

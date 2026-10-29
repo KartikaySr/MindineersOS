@@ -1,5 +1,6 @@
 import type { Workspace, WorkspaceUpdate } from "./shared/contracts/workspace";
-import { useState } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
+const Office = lazy(() => import("./Office"));
 import {
   ArrowRight,
   ArrowUp,
@@ -23,6 +24,7 @@ const sectionRoutes: Record<string, string> = {
   Decisions: "inbox",
   "Recent documents": "documents",
   "Agent roster": "agents",
+  "Office preview": "office",
 };
 export default function PersonalDashboard({
   data,
@@ -31,6 +33,7 @@ export default function PersonalDashboard({
   openAssistant,
   createMission,
   createProject,
+  selectAgent,
 }: {
   data: Workspace;
   update: WorkspaceUpdate;
@@ -38,9 +41,12 @@ export default function PersonalDashboard({
   openAssistant: (prompt?: string) => void;
   createMission?: (name?: string) => void;
   createProject?: () => void;
+  selectAgent?: (id: string) => void;
 }) {
   const [customize, setCustomize] = useState(false),
     [note, setNote] = useState("");
+  const [showOffice, setShowOffice] = useState(false);
+  const previewAgents = useMemo(() => data.agents.slice(0, 4), [data.agents]);
   const s = dashboardSummary(data),
     layout = data.settings.dashboard || dashboardSections;
   const saveLayout = (next: string[]) =>
@@ -76,6 +82,42 @@ export default function PersonalDashboard({
     </div>
   );
   const content: Record<string, React.ReactNode> = {
+    "Office preview": (
+      <>
+        <p>
+          Your configured team, in a shared space. This preview does not
+          indicate live agent activity.
+        </p>
+        {showOffice && previewAgents.length > 0 ? (
+          <>
+            <Suspense fallback={<p role="status">Opening your studio…</p>}>
+              <Office
+                agents={previewAgents}
+                compact
+                reduced={data.settings.motion}
+                onSelect={(id) =>
+                  selectAgent ? selectAgent(id) : location.assign("#agents")
+                }
+              />
+            </Suspense>
+            <button className="exp-button" onClick={() => setShowOffice(false)}>
+              Pause office preview
+            </button>
+          </>
+        ) : (
+          <button
+            className="exp-button"
+            disabled={!previewAgents.length}
+            onClick={() => setShowOffice(true)}
+          >
+            Show 3D preview
+          </button>
+        )}
+        <a className="exp-button" href="#office">
+          Enter full office
+        </a>
+      </>
+    ),
     Priorities: s.priorities.length
       ? s.priorities
           .slice(0, 5)

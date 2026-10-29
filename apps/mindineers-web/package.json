@@ -13,9 +13,13 @@
     "verify": "npm run typecheck && npm test && npm run build",
     "verify:hosted": "node scripts/check-hosted.mjs",
     "audit:types": "node scripts/audit-types.mjs",
-    "verify:release": "node scripts/check-runtime.mjs && npm run verify && npm run audit:types"
+    "verify:release": "node scripts/check-runtime.mjs && npm run verify && npm run audit:types -- --require-complete"
   },
   "dependencies": {
+    "@tiptap/markdown": "3.32.0",
+    "@tiptap/pm": "3.32.0",
+    "@tiptap/react": "3.32.0",
+    "@tiptap/starter-kit": "3.32.0",
     "ajv": "^8.18.0",
     "lucide-react": "^0.468.0",
     "react": "^19.2.0",
