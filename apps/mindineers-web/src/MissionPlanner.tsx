@@ -1,3 +1,4 @@
+import MissionViews from "./MissionViews";
 import type {
   Workspace,
   WorkspaceUpdate,
@@ -136,16 +137,18 @@ export default function MissionPlanner({
       </div>
       <div className="toolbar">
         <div className="tabs" role="group" aria-label="Mission view">
-          {["Board", "List", "Timeline"].map((v) => (
-            <button
-              key={v}
-              aria-pressed={view === v}
-              className={view === v ? "active" : ""}
-              onClick={() => setView(v)}
-            >
-              {v}
-            </button>
-          ))}
+          {["Board", "List", "Timeline", "Dependencies", "Workload"].map(
+            (v) => (
+              <button
+                key={v}
+                aria-pressed={view === v}
+                className={view === v ? "active" : ""}
+                onClick={() => setView(v)}
+              >
+                {v}
+              </button>
+            ),
+          )}
         </div>
         <button className="button dark" onClick={newTask}>
           + New mission
@@ -169,7 +172,14 @@ export default function MissionPlanner({
         </select>
         <span>{filtered.length} missions</span>
       </div>
-      {view === "Board" ? (
+      {view === "Dependencies" || view === "Workload" ? (
+        <MissionViews
+          view={view}
+          tasks={filtered}
+          allTasks={tasks}
+          select={setSelected}
+        />
+      ) : view === "Board" ? (
         <div className="mission-board">
           {statuses.map((status) => (
             <section

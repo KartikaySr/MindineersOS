@@ -107,3 +107,9 @@ The type audit identifies 81 TypeScript files, 41 compatibility facades, 12 hand
 - Connected-resource service replacement resets stale account state; refreshing cancels unsubmitted reviews while preserving attempted request identities and their reviewed effect. Concurrent duplicate command submissions are blocked.
 - Latest release verification: 111 passing tests, 106 strict TS/TSX files, 53 compatibility facades, zero unchecked authored JavaScript, production build and asset/header checks passed. The schema-validator declaration is explicitly tracked so clean deployments can typecheck.
 - Full architectural parity remains open. Missing or unverified items include advanced mission split/merge and workload journeys, voice/media collaboration, complete connected-state acceptance, and mobile/screen-reader/performance verification. This revision must not be described as the completed original architecture.
+
+## Latest release checkpoint — 29 October 2026
+
+Mission planning now includes owner workload and accessible dependency views. Counts use saved records; blocked calculations resolve dependencies against the complete workspace even when the display is filtered. Missing prerequisites remain visible. Advanced split/merge, immutable plan baselines and a spatial dependency graph remain separate acceptance gaps.
+
+Release checks pass 112 tests and the production build (107 strict TS/TSX files, 53 compatibility facades, no unchecked authored JavaScript; initial JS 137.2 kB gzip). The preceding restoration commit `6fc345c` was pushed to GitHub. Hosted HTML/assets/security headers passed verification, but its manifest differed from the local release; deployment of this revision is not yet confirmed. Browser access remains unavailable for the latest visual checks.
