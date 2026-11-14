@@ -121,3 +121,7 @@ Implemented named baseline snapshots with field-level comparison, 2–10-part sp
 Find these controls in Missions → Overview → Plan baselines, split and merge. These are local planning interactions: remote approvals are not revoked and external artifacts are not automatically revalidated. Merged source references outside mission dependencies require manual review. Local baselines are comparison snapshots, not tamper-proof server records. History is bounded to 30 baselines and 100 restructuring operations; existing workspace export and undo remain available.
 
 Verification: 116 tests pass, including DOM interaction coverage for baseline capture and split confirmation; strict TypeScript, production build and release gates pass. Browser use still reports disabled, so visual/mobile acceptance remains open. Voice/media collaboration and comprehensive architecture coverage remain outstanding; the frontend is not yet certified complete.
+
+## Conversation media — 14 November 2026
+
+Chat supports device-local voice capture, attachments, manual transcripts, media playback, downloads and device-voice read aloud. Shared access and automatic transcription require service integration. Full original-scope coverage and comprehensive accessibility acceptance remain open.

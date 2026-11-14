@@ -1,3 +1,4 @@
+import ConversationMedia, {ReadAloud} from "./domains/conversations/ConversationMedia";
 import type {
   Workspace,
   WorkspaceUpdate,
@@ -203,6 +204,7 @@ export default function Conversations({
             {!data.projects.length && <a href="#projects">Create a project</a>}
           </div>
         )}
+        {thread && <ConversationMedia key={thread.id} thread={thread} data={data} update={update}/>}
         <div className="conversation-messages">
           {!thread?.messages.length ? (
             <div className="chat-empty">
@@ -247,6 +249,7 @@ export default function Conversations({
                     </small>
                   </strong>
                   <p>{m.text}</p>
+                  <ReadAloud text={m.text}/>
                   <div className="conversation-message-actions">
                     <button
                       onClick={() =>

@@ -134,3 +134,5 @@ The 29 October restoration release adds persistent conversation composer drafts,
 Mission planning also includes owner workload and accessible dependency inspection, backed by 112 passing release tests as of 29 October. Counts are based on saved missions and are not runtime utilization estimates.
 
 Mission planning now supports named baseline comparisons and reviewed split/merge operations with dependency rewiring, downstream revalidation and bounded local history. The 30 October release checks pass 116 tests. Remote approval revocation remains a backend integration requirement.
+
+In Chat, open a conversation and expand **Voice notes & attachments** to record, attach, preview, download, unlink, or add a transcript. Files are stored on the current device. Recording requires browser permission and stops after five minutes. Read aloud uses a device voice when available.

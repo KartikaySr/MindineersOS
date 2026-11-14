@@ -198,6 +198,7 @@ export function validateWorkspace(v: unknown) {
         text(t.title) &&
         text(t.agent) &&
         (t.draft === undefined || text(t.draft, 200000)) &&
+        (t.attachments === undefined || (Array.isArray(t.attachments) && t.attachments.length <= 20 && new Set(t.attachments).size === t.attachments.length && t.attachments.every(id=>text(id,120)))) &&
         rows(t.context, (c) => text(c)) &&
         rows(
           t.messages,

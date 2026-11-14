@@ -40,7 +40,7 @@ export default function ArtifactPreview({
       ].includes(file.type)
     )
       return { kind: "image", file };
-    if (file.size <= 50 * 1024 * 1024 && ["audio/mpeg", "audio/ogg", "audio/wav", "audio/mp4", "video/mp4", "video/webm", "video/ogg"].includes(file.type))
+    if (file.size <= 50 * 1024 * 1024 && ["audio/webm", "audio/mpeg", "audio/ogg", "audio/wav", "audio/mp4", "video/mp4", "video/webm", "video/ogg"].includes(file.type.split(";")[0]!))
       return {kind: file.type.startsWith("audio/") ? "audio" : "video", file};
     if (
       (/^text\/(plain|markdown|csv)$/.test(file.type) ||

@@ -400,6 +400,7 @@ export interface LegacyRecord extends Entity {
   [key: string]: unknown;
 }
 export interface Conversation extends Entity {
+  attachments?: string[];
   draft?: string;
   title: string;
   agent: string;
