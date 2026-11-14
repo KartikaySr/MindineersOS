@@ -64,3 +64,7 @@ Implemented named baseline snapshots with field-level comparison, 2–10-part sp
 Find these controls in Missions → Overview → Plan baselines, split and merge. These are local planning interactions: remote approvals are not revoked and external artifacts are not automatically revalidated. Merged source references outside mission dependencies require manual review. Local baselines are comparison snapshots, not tamper-proof server records. History is bounded to 30 baselines and 100 restructuring operations; existing workspace export and undo remain available.
 
 Verification: 116 tests pass, including DOM interaction coverage for baseline capture and split confirmation; strict TypeScript, production build and release gates pass. Browser use still reports disabled, so visual/mobile acceptance remains open. Voice/media collaboration and comprehensive architecture coverage remain outstanding; the frontend is not yet certified complete.
+
+## 15 November 2026
+
+The hosted conversation-media release at d48da3d passed the header and asset-digest checks. Chat supports local attachments, voice notes, transcripts and device-voice playback. Missions now has a responsive dependency map with a selectable center, links to prerequisite and dependent records, and explicit missing prerequisites. The original list remains available. The automated map test covers neighbors outside the active filter. Manual keyboard, touch, screen-reader and connected-service acceptance remain open.

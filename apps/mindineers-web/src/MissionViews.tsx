@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { LegacyRecord } from "./shared/contracts/workspace";
 export function missionWorkload(
   tasks: LegacyRecord[],
@@ -41,17 +42,71 @@ export function missionWorkload(
     (a, b) => b.open - a.open || a.owner.localeCompare(b.owner),
   );
 }
+type MissionViewProps = {
+  tasks: LegacyRecord[];
+  allTasks: LegacyRecord[];
+  select: (task: LegacyRecord) => void;
+};
+
+function DependencyMap({ tasks, allTasks, select }: MissionViewProps) {
+  const [focusedId, setFocusedId] = useState("");
+  const focus = tasks.find((task) => task.id === focusedId) ?? tasks[0];
+  if (!focus) return <p>No missions match these filters.</p>;
+
+  const byId = new Map(allTasks.map((task) => [task.id, task]));
+  const dependents = allTasks.filter((task) =>
+    task.dependsOn?.includes(focus.id),
+  );
+  function node(id: string) {
+    const task = byId.get(id);
+    return task ? (
+      <button key={id} className="button" onClick={() => select(task)}>
+        {task.name} · {task.status}
+      </button>
+    ) : (
+      <span key={id}>Missing prerequisite: {id}</span>
+    );
+  }
+  return (
+    <section aria-label="Dependency map">
+      <label>
+        Map center
+        <select
+          value={focus.id}
+          onChange={(event) => setFocusedId(event.target.value)}
+        >
+          {tasks.map((task) => (
+            <option key={task.id} value={task.id}>
+              {task.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="mission-map">
+        <div>
+          <h4>Prerequisites</h4>
+          {focus.dependsOn?.length ? focus.dependsOn.map(node) : "None"}
+        </div>
+        <span aria-hidden="true">→</span>
+        <div>
+          <h4>Selected mission</h4>
+          {node(focus.id)}
+        </div>
+        <span aria-hidden="true">→</span>
+        <div>
+          <h4>Depends on this mission</h4>
+          {dependents.length ? dependents.map((task) => node(task.id)) : "None"}
+        </div>
+      </div>
+    </section>
+  );
+}
 export default function MissionViews({
   view,
   tasks,
   allTasks,
   select,
-}: {
-  view: "Workload" | "Dependencies";
-  tasks: LegacyRecord[];
-  allTasks: LegacyRecord[];
-  select: (task: LegacyRecord) => void;
-}) {
+}: MissionViewProps & { view: "Workload" | "Dependencies" }) {
   if (view === "Workload")
     return (
       <section className="panel">
@@ -99,6 +154,7 @@ export default function MissionViews({
         Each mission lists its prerequisites. Open either record to inspect or
         edit it; missing dependencies remain visible as blockers.
       </p>
+      <DependencyMap tasks={tasks} allTasks={allTasks} select={select} />
       {tasks.map((task) => (
         <article className="wb-body" key={task.id}>
           <button className="button" onClick={() => select(task)}>
