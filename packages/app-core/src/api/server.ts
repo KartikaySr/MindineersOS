@@ -159,6 +159,7 @@ import { getCorsAllowedPorts, isAllowedOrigin } from "./server-cors";
 // Phase 2 extraction: Steward compat routes → app-steward/src/plugin.ts (stewardPlugin)
 // Includes: handleWalletBrowserCompatRoutes, handleWalletTradeCompatRoutes,
 //           handleStewardCompatRoutes, handleWalletCompatRoutes
+import { handleMindineersWorkspaces } from "./mindineers-workspaces";
 import { handleWorkbenchCompatRoutes } from "./workbench-compat-routes";
 
 const _require = createRequire(import.meta.url);
@@ -739,6 +740,8 @@ async function handleCompatRouteInner(
 
   // Cookie + CSRF session lifecycle (setup, login, logout, me, sessions).
   if (await handleAuthSessionRoutes(req, res, state)) return true;
+
+  if (await handleMindineersWorkspaces(req, res, state)) return true;
 
   // Auth / pairing / first-run status — extracted to auth-pairing-routes.ts
   if (await handleAuthPairingCompatRoutes(req, res, state)) return true;

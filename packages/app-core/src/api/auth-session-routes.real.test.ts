@@ -209,6 +209,35 @@ describe("P1 session routes (real pglite)", () => {
     delete process.env.ELIZA_DEV_AUTH_BYPASS;
   });
 
+  it("isolates private workspaces and rejects stale edits and missing CSRF", async () => {
+    const { handleMindineersWorkspaces } = await import("./mindineers-workspaces");
+    const { CSRF_HEADER_NAME, createBrowserSession } = await import("./auth/sessions");
+    async function login(id: string) {
+      await harness.store.createIdentity({ id, displayName: id, kind: "owner", createdAt: Date.now() });
+      return createBrowserSession(harness.store, { identityId: id, rememberDevice: false, ip: null, userAgent: null });
+    }
+    const alice = await login("alice");
+    const bob = await login("bob");
+    const base = "/api/mindineers/workspaces";
+    async function call(method: string, pathname: string, actor?: typeof alice, body?: unknown, token = actor?.csrfToken) {
+      const res = fakeRes();
+      const req = fakeReq({ method, pathname, body, ...(actor && { cookie: `${SESSION_COOKIE_NAME}=${actor.session.id}` }), headers: token ? { [CSRF_HEADER_NAME]: token } : {} });
+      expect(await handleMindineersWorkspaces(req, res.res, harness.state)).toBe(true);
+      return { status: res.status(), body: res.body() };
+    }
+    const path = base + "/original";
+    expect((await call("GET", base)).status).toBe(401);
+    expect((await call("PUT", path, alice, { name: "Team" }, "")).status).toBe(403);
+    expect((await call("PUT", path, alice, { name: "Team" })).status).toBe(201);
+    expect((await call("PUT", path, alice, { name: "Team" })).status).toBe(200);
+    expect((await call("GET", path, bob)).status).toBe(404);
+    expect((await call("GET", base, bob)).body).toEqual({ items: [] });
+    const renamed = { name: "Operations", revision: 1 };
+    const races = await Promise.all([call("PATCH", path, alice, renamed), call("PATCH", path, alice, renamed)]);
+    expect(races.map(r => r.status).sort()).toEqual([200, 409]);
+    expect((await call("GET", path, alice)).body).toEqual({ id: "original", name: "Operations", revision: 2 });
+  });
+
   it("setup -> me -> logout flow", async () => {
     // POST /api/auth/setup
     const setupReq = fakeReq({
