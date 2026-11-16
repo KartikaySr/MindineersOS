@@ -81,6 +81,7 @@ const Connections = lazy(() => import("./Connections"));
 const Artifacts = lazy(() => import("./Artifacts"));
 const CalendarWorkspace = lazy(() => import("./CalendarWorkspace"));
 const Customers = lazy(() => import("./Customers"));
+import { serverEnabled, ServerWorkspaces } from "./ServerWorkspaces";
 import WorkspaceManager from "./WorkspaceManager";
 import {
   readIndex,
@@ -348,15 +349,15 @@ export default function App() {
       notify(errorMessage(error));
     }
   };
-  const createWorkspace = (name: string) => {
+  const createWorkspace = (name: string, restored?: Workspace) => {
     const id = crypto.randomUUID(),
-      workspace = fresh();
+      workspace = restored ?? fresh();
     workspace.settings = {
       ...workspace.settings,
-      name: data.settings.name,
+      name: restored?.settings.name ?? data.settings.name,
       workspace: name,
-      theme: data.settings.theme,
-      motion: data.settings.motion,
+      theme: restored?.settings.theme ?? data.settings.theme,
+      motion: restored?.settings.motion ?? data.settings.motion,
     };
     const index = {
       active: id,
@@ -1625,7 +1626,9 @@ export default function App() {
           onSwitch={selectWorkspace}
           onCreate={createWorkspace}
           onClose={() => setWorkspacePicker(false)}
-        />
+        >
+          {serverEnabled && <ServerWorkspaces workspace={data} restore={copy => createWorkspace(copy.settings.workspace, copy)} />}
+        </WorkspaceManager>
       )}{" "}
       {recovery && (
         <Dialog title="Recover your workspace" onClose={() => {}}>

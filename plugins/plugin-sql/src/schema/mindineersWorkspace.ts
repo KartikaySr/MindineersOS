@@ -1,4 +1,4 @@
-import { integer, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
+import { integer, jsonb, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
 import { authIdentityTable } from "./authIdentity";
 
 export const mindineersWorkspaceTable = pgTable(
@@ -9,6 +9,7 @@ export const mindineersWorkspaceTable = pgTable(
       .references(() => authIdentityTable.id),
     id: text("id").notNull(),
     name: text("name").notNull(),
+    contents: jsonb("contents"),
     revision: integer("revision").notNull().default(1),
   },
   (table) => [primaryKey({ columns: [table.ownerId, table.id] })],

@@ -1,12 +1,14 @@
 import type { WorkspaceIndex } from "./shared/contracts/workspace";
 import { useState, useEffect, useRef } from "react";
 export default function WorkspaceManager({
+  children,
   index,
   activeName,
   onSwitch,
   onCreate,
   onClose,
 }: {
+  children?: import("react").ReactNode;
   index: WorkspaceIndex;
   activeName: string;
   onSwitch: (id: string) => void;
@@ -35,7 +37,6 @@ export default function WorkspaceManager({
     >
       <div className="dialog-heading">
         <div>
-          <span className="eyebrow">A HOME FOR EVERY CHAPTER</span>
           <h2>Your workspaces</h2>
         </div>
         <button
@@ -112,6 +113,7 @@ export default function WorkspaceManager({
         Cloud organizations, shared membership, and synchronization will require
         your backend.
       </p>
+      {children}
     </dialog>
   );
 }

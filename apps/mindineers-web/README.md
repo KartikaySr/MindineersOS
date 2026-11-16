@@ -136,3 +136,9 @@ Mission planning also includes owner workload and accessible dependency inspecti
 Mission planning now supports named baseline comparisons and reviewed split/merge operations with dependency rewiring, downstream revalidation and bounded local history. The 30 October release checks pass 116 tests. Remote approval revocation remains a backend integration requirement.
 
 In Chat, open a conversation and expand **Voice notes & attachments** to record, attach, preview, download, unlink, or add a transcript. Files are stored on the current device. Recording requires browser permission and stops after five minutes. Read aloud uses a device voice when available.
+
+### Connect the existing workspace API
+
+For a deployment with the matching app-core backend on the same origin, set `VITE_MINDINEERS_SERVER=true` at build time. The sign-in screen then accepts the host's existing account name and password. In the workspace switcher, choose **Load server copies** to save, update, or open a private copy. Updates use the last observed server revision. Restoring creates a new local workspace. Server copies currently support 1 MiB of JSON records. Attachment bytes remain on the device that stored them.
+
+The default Vercel build continues to work as a static frontend. Enabling the flag requires routing the auth and workspace API paths to a configured backend and applying its SQL plugin migration.

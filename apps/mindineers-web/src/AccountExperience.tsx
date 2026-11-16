@@ -3,6 +3,7 @@ import type {
   WorkspaceUpdate,
   Profile,
 } from "./shared/contracts/workspace";
+import { serverEnabled, ServerLogin } from "./ServerWorkspaces";
 import IdentityJourney from "./domains/administration/IdentityJourney";
 import { useState } from "react";
 import { ArrowRight, User, Check, Upload } from "lucide-react";
@@ -31,32 +32,19 @@ export function AccountEntry({
       </header>
       <main>
         <section className="account-story">
-          <span className="exp-kicker">YOUR NEXT CHAPTER</span>
-          <h1>
-            Great work starts
-            <br />
-            with a little
-            <br />
-            <em>headspace.</em>
-          </h1>
-          <p>
-            One home for your ideas, commitments, and the work that matters.
-          </p>
-          <div className="account-orb" aria-hidden="true">
-            ✳
-          </div>
-          <span className="exp-pill">Personal by design. Directed by you.</span>
+          <h1>Your work, <em>in one place.</em></h1>
+          <p>Plan missions, review agent activity, and manage documents from your workspace.</p>
+          <div className="account-orb" aria-hidden="true">✳</div>
         </section>
         <section className="account-form">
-          <span className="exp-kicker">MINDINEERS ACCOUNT</span>
           <h2>
             {recovery
-              ? "Find your way back."
+              ? "Recover your account"
               : signup
-                ? "Make space for your ambition."
+                ? "Create an account"
                 : join
                   ? "Join your team."
-                  : "Welcome back."}
+                  : "Sign in"}
           </h2>
           <p>
             {recovery
@@ -70,8 +58,8 @@ export function AccountEntry({
           <a href="#home" className="exp-button primary">
             Continue to local workspace <ArrowRight size={18} />
           </a>
-          <div className="account-divider">CLOUD ACCOUNT</div>
-          <IdentityJourney key={route} intent={route} />
+          <div className="account-divider">{serverEnabled && route === "sign-in" ? "SERVER ACCOUNT" : "CLOUD ACCOUNT"}</div>
+          {route === "sign-in" && serverEnabled ? <ServerLogin /> : <IdentityJourney key={route} intent={route} />}
           <nav aria-label="Account options">
             <a href="#sign-in">Sign in</a>
             <a href="#sign-up">Create account</a>

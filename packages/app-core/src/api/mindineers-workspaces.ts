@@ -21,7 +21,9 @@ export async function handleMindineersWorkspaces(
 ) {
   const path = new URL(req.url ?? "/", "http://localhost").pathname;
   const match =
-    /^\/api\/mindineers\/workspaces(?:\/([A-Za-z0-9_-]{1,120}))?$/.exec(path);
+    /^\/api\/mindineers\/workspaces(?:\/([A-Za-z0-9_-]{1,120})(\/contents)?)?$/.exec(
+      path,
+    );
   if (!match) return false;
   res.setHeader("Cache-Control", "private, no-store");
   const reply = (status: number, body: unknown) => {
@@ -29,7 +31,8 @@ export async function handleMindineersWorkspaces(
     return true;
   };
   const id = match[1];
-  const allow = id ? "GET, PUT, PATCH" : "GET";
+  const contents = Boolean(match[2]);
+  const allow = contents ? "GET, PUT" : id ? "GET, PUT, PATCH" : "GET";
   if (!allow.split(", ").includes(req.method ?? "")) {
     res.setHeader("Allow", allow);
     return reply(405, { error: "method_not_allowed" });
@@ -63,7 +66,14 @@ export async function handleMindineersWorkspaces(
   const read = async () =>
     (await database.select(fields).from(table).where(scope))[0];
   if (req.method === "GET") {
-    const item = await read();
+    const item = contents
+      ? (
+          await database
+            .select({ ...fields, contents: table.contents })
+            .from(table)
+            .where(scope)
+        )[0]
+      : await read();
     return item ? reply(200, item) : reply(404, { error: "workspace_missing" });
   }
   const csrf = req.headers[CSRF_HEADER_NAME];
@@ -71,17 +81,48 @@ export async function handleMindineersWorkspaces(
     return reply(403, { error: "csrf_required" });
   const body = await readCompatJsonBody(req, res);
   if (!body) return true;
+  const value = body.contents;
+  if (contents || value !== undefined) {
+    if (
+      !value ||
+      typeof value !== "object" ||
+      Array.isArray(value) ||
+      !("settings" in value) ||
+      !("records" in value)
+    )
+      return reply(422, { error: "invalid_checkpoint" });
+    if (Buffer.byteLength(JSON.stringify(body)) > 1048576)
+      return reply(413, { error: "checkpoint_too_large" });
+  }
+  if (contents) {
+    if (!Number.isSafeInteger(body.revision) || Number(body.revision) < 1)
+      return reply(422, { error: "invalid_revision" });
+    const [saved] = await database
+      .update(table)
+      .set({ contents: value, revision: sql`${table.revision} + 1` })
+      .where(and(scope, eq(table.revision, Number(body.revision))))
+      .returning(fields);
+    if (saved) return reply(200, saved);
+    return (await read())
+      ? reply(409, { error: "stale_revision" })
+      : reply(404, { error: "workspace_missing" });
+  }
   const name = typeof body.name === "string" ? body.name.trim() : "";
   if (!name || name.length > 300) return reply(422, { error: "invalid_name" });
   if (req.method === "PUT") {
     const [item] = await database
       .insert(table)
-      .values({ ownerId: session.identityId, id, name })
+      .values({
+        ownerId: session.identityId,
+        id,
+        name,
+        contents: value ?? null,
+      })
       .onConflictDoNothing()
       .returning(fields);
     if (item) return reply(201, item);
     const existing = await read();
-    return existing?.name === name
+    return value === undefined && existing?.name === name
       ? reply(200, existing)
       : reply(409, { error: "workspace_exists" });
   }

@@ -236,6 +236,12 @@ describe("P1 session routes (real pglite)", () => {
     const races = await Promise.all([call("PATCH", path, alice, renamed), call("PATCH", path, alice, renamed)]);
     expect(races.map(r => r.status).sort()).toEqual([200, 409]);
     expect((await call("GET", path, alice)).body).toEqual({ id: "original", name: "Operations", revision: 2 });
+    const contents = { settings: { name: "Example" }, records: {} };
+    const snapshot = { contents, revision: 2 };
+    expect((await call("PUT", path + "/contents", alice, snapshot)).status).toBe(200);
+    expect((await call("PUT", path + "/contents", alice, snapshot)).status).toBe(409);
+    expect((await call("GET", path + "/contents", bob)).status).toBe(404);
+    expect((await call("GET", path + "/contents", alice)).body).toMatchObject({ contents, revision: 3 });
   });
 
   it("setup -> me -> logout flow", async () => {
