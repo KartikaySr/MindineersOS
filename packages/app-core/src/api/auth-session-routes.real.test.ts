@@ -219,9 +219,9 @@ describe("P1 session routes (real pglite)", () => {
     const alice = await login("alice");
     const bob = await login("bob");
     const base = "/api/mindineers/workspaces";
-    async function call(method: string, pathname: string, actor?: typeof alice, body?: unknown, token = actor?.csrfToken) {
+    async function call(method: string, pathname: string, actor?: typeof alice, body?: unknown, token = actor?.csrfToken, requestId?: string) {
       const res = fakeRes();
-      const req = fakeReq({ method, pathname, body, ...(actor && { cookie: `${SESSION_COOKIE_NAME}=${actor.session.id}` }), headers: token ? { [CSRF_HEADER_NAME]: token } : {} });
+      const req = fakeReq({ method, pathname, body, ...(actor && { cookie: `${SESSION_COOKIE_NAME}=${actor.session.id}` }), headers: { "content-type": "application/json", ...(requestId ? { "idempotency-key": requestId } : {}), ...(token ? { [CSRF_HEADER_NAME]: token } : {}) } });
       expect(await handleMindineersWorkspaces(req, res.res, harness.state)).toBe(true);
       return { status: res.status(), body: res.body() };
     }
@@ -242,6 +242,15 @@ describe("P1 session routes (real pglite)", () => {
     expect((await call("PUT", path + "/contents", alice, snapshot)).status).toBe(409);
     expect((await call("GET", path + "/contents", bob)).status).toBe(404);
     expect((await call("GET", path + "/contents", alice)).body).toMatchObject({ contents, revision: 3 });
+
+    const attempt = { contents, revision: 3 };
+    const retry = () => call("PUT", path + "/contents", alice, attempt, alice.csrfToken, "stable_request_0001");
+    const repeated = await Promise.all([retry(), retry()]);
+    expect(repeated.map(result => result.status)).toEqual([200, 200]);
+    expect(repeated.map(result => (result.body as { revision: number }).revision)).toEqual([4, 4]);
+    expect((await call("GET", path + "/history/3", alice)).body).toMatchObject({ contents, revision: 3 });
+    expect((await call("GET", path + "/history", bob)).status).toBe(404);
+    expect((await call("PUT", path + "/contents", alice, { contents: { records: {}, settings: null }, revision: 4 })).status).toBe(422);
   });
 
   it("setup -> me -> logout flow", async () => {

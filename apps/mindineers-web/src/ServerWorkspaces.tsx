@@ -9,9 +9,12 @@ async function request(
   signal: AbortSignal,
   method = "GET",
   body?: unknown,
+  requestId?: string,
 ) {
-  if (!window.isSecureContext) throw Error("Use HTTPS or localhost to connect to the server.");
+  if (!window.isSecureContext)
+    throw Error("Use HTTPS or localhost to connect to the server.");
   const headers = new Headers({ Accept: "application/json" });
+  if (requestId) headers.set("Idempotency-Key", requestId);
   if (body !== undefined) headers.set("Content-Type", "application/json");
   const csrf = document.cookie
     .split("; ")
@@ -21,7 +24,7 @@ async function request(
   const response = await fetch(path, {
     method,
     headers,
-    signal,
+    signal: AbortSignal.any([signal, AbortSignal.timeout(30000)]),
     credentials: "same-origin",
     redirect: "error",
     cache: "no-store",
@@ -42,7 +45,27 @@ async function request(
   }
   if (!response.headers.get("content-type")?.includes("application/json"))
     throw Error("The workspace API is unavailable on this host.");
-  return response.json();
+  const reader = response.body?.getReader();
+  if (!reader) throw Error("The service returned an empty response.");
+  const decoder = new TextDecoder();
+  let bytes = 0,
+    text = "";
+  try {
+    while (true) {
+      const part = await reader.read();
+      if (part.done) break;
+      bytes += part.value.byteLength;
+      if (bytes > 2 * 1048576) {
+        await reader.cancel();
+        throw Error("The server response exceeds the supported size.");
+      }
+      text += decoder.decode(part.value, { stream: true });
+    }
+    text += decoder.decode();
+    return JSON.parse(text);
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 function useAction() {
@@ -122,6 +145,15 @@ export function ServerWorkspaces({
     { id: string; name: string; revision: number }[] | null
   >(null);
   const [selected, setSelected] = useState("");
+  const [versions, setVersions] = useState<
+    { revision: number; name: string; savedAt: number }[]
+  >([]);
+  const pending = useRef<{
+    id: string;
+    path: string;
+    body: unknown;
+    key: string;
+  } | null>(null);
   return (
     <section className="server-workspaces" aria-label="Server copies">
       <h3>Private server copies</h3>
@@ -136,6 +168,7 @@ export function ServerWorkspaces({
           void run(async (signal) => {
             setItems(null);
             setSelected("");
+            setVersions([]);
             const result = await request(directory, signal);
             if (
               !Array.isArray(result.items) ||
@@ -164,8 +197,11 @@ export function ServerWorkspaces({
             Server workspace
             <select
               value={selected}
-              onChange={(e) => setSelected(e.target.value)}
-              disabled={busy}
+              onChange={(e) => {
+                setSelected(e.target.value);
+                setVersions([]);
+              }}
+              disabled={busy || pending.current !== null}
             >
               <option value="">New copy</option>
               {items.map((i) => (
@@ -181,17 +217,25 @@ export function ServerWorkspaces({
             onClick={() =>
               void run(async (signal) => {
                 const item = items.find((i) => i.id === selected),
-                  id = item?.id ?? crypto.randomUUID();
+                  id = pending.current?.id ?? item?.id ?? crypto.randomUUID();
                 const body = item
                   ? { revision: item.revision, contents: workspace }
                   : { name: workspace.settings.workspace, contents: workspace };
                 if (new Blob([JSON.stringify(body)]).size > 1048576)
                   throw Error("This workspace exceeds the 1 MiB server limit.");
+                pending.current ??= {
+                  id,
+                  path: directory + "/" + id + (item ? "/contents" : ""),
+                  body,
+                  key: crypto.randomUUID(),
+                };
+                const attempt = pending.current;
                 const result = await request(
-                  directory + "/" + id + (item ? "/contents" : ""),
+                  attempt.path,
                   signal,
                   "PUT",
-                  body,
+                  attempt.body,
+                  attempt.key,
                 );
                 if (
                   result.id !== id ||
@@ -204,13 +248,94 @@ export function ServerWorkspaces({
                 if (!signal.aborted) {
                   setItems([...items.filter((i) => i.id !== id), result]);
                   setSelected(id);
+                  setVersions([]);
+                  pending.current = null;
                 }
                 return "Server copy saved.";
               })
             }
           >
-            {selected ? "Update selected copy" : "Save new server copy"}
+            {pending.current
+              ? "Retry pending save"
+              : selected
+                ? "Update selected copy"
+                : "Save new server copy"}
           </button>
+          {pending.current && (
+            <p role="status">
+              A save is awaiting confirmation. Retry sends the same version.{" "}
+              <button
+                className="exp-button"
+                disabled={busy}
+                onClick={() => {
+                  pending.current = null;
+                  setItems(null);
+                  setSelected("");
+                  setVersions([]);
+                }}
+              >
+                Clear pending save and refresh
+              </button>
+            </p>
+          )}
+          {selected && (
+            <button
+              className="exp-button"
+              disabled={busy}
+              onClick={() =>
+                void run(async (signal) => {
+                  const response = await request(
+                    directory + "/" + selected + "/history",
+                    signal,
+                  );
+                  if (
+                    !Array.isArray(response.items) ||
+                    !response.items.every(
+                      (item: {
+                        revision?: unknown;
+                        name?: unknown;
+                        savedAt?: unknown;
+                      }) =>
+                        item &&
+                        Number.isSafeInteger(item.revision) &&
+                        typeof item.name === "string" &&
+                        typeof item.savedAt === "number",
+                    )
+                  )
+                    throw Error("Invalid version history.");
+                  if (!signal.aborted) setVersions(response.items);
+                  return response.items.length
+                    ? "Showing the latest 50 saved versions."
+                    : "No saved version history yet.";
+                })
+              }
+            >
+              Version history
+            </button>
+          )}
+          {versions.map((version) => (
+            <button
+              className="exp-button"
+              key={version.revision}
+              disabled={busy}
+              onClick={() =>
+                void run(async (signal) => {
+                  const result = await request(
+                    directory + "/" + selected + "/history/" + version.revision,
+                    signal,
+                  );
+                  if (!result.contents)
+                    throw Error("This version has no saved contents.");
+                  const copy = parseWorkspace(result.contents);
+                  if (!signal.aborted) restore(copy);
+                  return "Opened the saved version as a new local workspace.";
+                })
+              }
+            >
+              Open revision {version.revision} ·{" "}
+              {new Date(version.savedAt).toLocaleString()}
+            </button>
+          ))}
           {selected && (
             <button
               className="exp-button"
@@ -238,6 +363,8 @@ export function ServerWorkspaces({
             onClick={() =>
               void run(async (signal) => {
                 await request("/api/auth/logout", signal, "POST", {});
+                pending.current = null;
+                setVersions([]);
                 setItems(null);
                 setSelected("");
                 return "Signed out of the server.";

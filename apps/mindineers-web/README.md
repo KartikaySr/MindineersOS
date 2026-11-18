@@ -142,3 +142,7 @@ In Chat, open a conversation and expand **Voice notes & attachments** to record,
 For a deployment with the matching app-core backend on the same origin, set `VITE_MINDINEERS_SERVER=true` at build time. The sign-in screen then accepts the host's existing account name and password. In the workspace switcher, choose **Load server copies** to save, update, or open a private copy. Updates use the last observed server revision. Restoring creates a new local workspace. Server copies currently support 1 MiB of JSON records. Attachment bytes remain on the device that stored them.
 
 The default Vercel build continues to work as a static frontend. Enabling the flag requires routing the auth and workspace API paths to a configured backend and applying its SQL plugin migration.
+
+For local integration with a running app-core API, set MINDINEERS_API_TARGET to its loopback origin when starting Vite. For example, VITE_MINDINEERS_SERVER=true MINDINEERS_API_TARGET=http://127.0.0.1:31337 npm run dev -- --port 5174 forwards the auth and workspace routes through the frontend origin. Use the actual port reported by the API host.
+
+Interrupted saves expose Retry pending save, which reuses the original snapshot and request ID. Version history shows the latest 50 saved revisions and opens a selected revision as a new local workspace.
