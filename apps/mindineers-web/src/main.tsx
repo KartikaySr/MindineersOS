@@ -50,6 +50,7 @@ import { AccountEntry, ProfileExperience } from "./AccountExperience";
 import PersonalDashboard from "./PersonalDashboard";
 import { CoreAssistant, GuidedTour } from "./WorkspaceGuide";
 const CustomerPortal = lazy(() => import("./domains/delivery/CustomerPortal"));
+const ArchitectureExplorer = lazy(() => import("./ArchitectureExplorer"));
 const HelpCenter = lazy(() => import("./HelpCenter"));
 const RunWorkspace = lazy(() => import("./RunWorkspace"));
 const ExperimentWorkspace = lazy(() => import("./ExperimentWorkspace"));
@@ -203,6 +204,7 @@ export default function App() {
     setModeSelection({ route, value });
   const [saveFailed, setSaveFailed] = useState(false),
     [saveAttempt, setSaveAttempt] = useState(0);
+  const [architectureOpen, setArchitectureOpen] = useState(false);
   const [workspaceIndex, setWorkspaceIndex] = useState(initialWorkspace.index),
     [workspacePicker, setWorkspacePicker] = useState(false),
     [recovery, setRecovery] = useState(initialWorkspace.error),
@@ -1619,6 +1621,9 @@ export default function App() {
     );
   return (
     <>
+      {architectureOpen && <Dialog title="How MindineersOS works" onClose={() => setArchitectureOpen(false)}>
+        <RouteBoundary><Suspense fallback={<LoadingState />}><ArchitectureExplorer motion={data.settings.motion} /></Suspense></RouteBoundary>
+      </Dialog>}
       {workspacePicker && (
         <WorkspaceManager
           index={workspaceIndex}
@@ -1876,6 +1881,9 @@ export default function App() {
             </span>
           </div>
           <div className="top-actions">
+            <button className="icon-button" aria-label="Project description and architecture" title="How MindineersOS works" onClick={() => setArchitectureOpen(true)}>
+              <Icon name="Layers" />
+            </button>
             <ThemeToggle theme={data.settings.theme} toggle={toggleTheme} />
             <button
               className="icon-button"
